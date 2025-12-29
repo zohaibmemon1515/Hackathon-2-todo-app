@@ -7,7 +7,7 @@ import os
 # Add the src directory to the path so imports work
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
-from models.task import Task
+from src.models.task import Task
 
 
 class TaskRepository:

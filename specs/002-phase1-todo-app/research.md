@@ -34,6 +34,11 @@ This document captures all research and decisions made during the planning phase
 ### Decision: Python 3.13+
 **Rationale**: Required by the constitution. Provides modern language features and good standard library support for console applications.
 
+### Decision: uv Package Manager for Development
+**Rationale**: To modernize the development workflow while maintaining compliance with the constitution's requirement that the application itself uses only Python standard library. The constitution was updated to allow development tools like uv while maintaining runtime constraints.
+
+**Alternatives considered**: pip + venv was considered but uv provides faster dependency resolution and management.
+
 ### Decision: Menu-Driven CLI Interface
 **Rationale**: The constitution requires a console-based interface. A menu-driven approach provides clear user experience for task management operations.
 

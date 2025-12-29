@@ -3,7 +3,7 @@ Integration tests for CLI basic operations
 """
 import io
 import sys
-from contextlib import redirect_stdin, redirect_stdout
+from contextlib import redirect_stdout
 from unittest.mock import patch, MagicMock
 import pytest
 from src.models.task import Task

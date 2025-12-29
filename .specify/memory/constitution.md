@@ -1,8 +1,8 @@
 <!-- SYNC IMPACT REPORT:
-Version change: 1.0.0 → 1.1.0
-Modified principles: Updated all sections to focus on Phase 1 requirements
-Added sections: Non-Goals section, updated constraints to be Phase 1 specific
-Removed sections: Advanced phase references
+Version change: 1.1.0 → 1.2.0
+Modified principles: Clarified external library constraint to distinguish between application and development tools
+Added sections: Development tools allowance
+Removed sections: None
 Templates requiring updates:
   - .specify/templates/plan-template.md ✅ updated
   - .specify/templates/spec-template.md ✅ updated
@@ -37,7 +37,8 @@ All features must have deterministic behavior with predictable outcomes. The app
 - Python 3.13+ required
 - Console-based interface only (no web UI)
 - In-memory data storage only (no database or file persistence)
-- No external libraries beyond Python standard library
+- Application code: No external libraries beyond Python standard library
+- Development tools: External tools like uv, pytest, etc. are permitted for development workflow
 - No advanced or intelligent features beyond Phase 1 scope
 
 ### Quality Standards
@@ -80,4 +81,4 @@ All features must have deterministic behavior with predictable outcomes. The app
 
 This constitution supersedes all other development practices and guidelines. All development work must comply with these principles. Amendments to this constitution require explicit approval and documentation of the change rationale. All pull requests and code reviews must verify compliance with constitutional principles. Complexity must be justified with clear business value. Use this constitution as the primary reference for development decisions. No features beyond Phase 1 scope are permitted without constitutional amendment.
 
-**Version**: 1.1.0 | **Ratified**: 2025-12-29 | **Last Amended**: 2025-12-29
+**Version**: 1.2.0 | **Ratified**: 2025-12-30 | **Last Amended**: 2025-12-30

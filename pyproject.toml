@@ -1,0 +1,12 @@
+[project]
+name = "python-todo-app-phase1"
+version = "0.1.0"
+description = "A Phase 1 Todo Application using Python standard library only"
+readme = "README.md"
+requires-python = ">=3.13"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=4.0.0",
+]

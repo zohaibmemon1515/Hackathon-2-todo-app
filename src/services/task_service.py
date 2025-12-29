@@ -7,9 +7,9 @@ import os
 # Add the src directory to the path so imports work
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
-from models.task import Task
-from repositories.task_repository import TaskRepository
-from lib.validators import validate_task_title
+from src.models.task import Task
+from src.repositories.task_repository import TaskRepository
+from src.lib.validators import validate_task_title
 
 
 class TaskService:

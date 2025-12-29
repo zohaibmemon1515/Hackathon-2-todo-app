@@ -11,7 +11,30 @@ This guide provides the essential information to understand and begin implementi
 ### Prerequisites
 - Python 3.13+ installed
 - Console/terminal access
-- No external dependencies required
+- [uv](https://github.com/astral-sh/uv) package manager installed
+- No external runtime dependencies required (application uses Python standard library only)
+
+### Installation with uv
+
+The project uses uv as the package manager for development workflows:
+
+```bash
+# Install uv (if not already installed)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Clone and set up the project
+git clone <repository-url>
+cd <repository-name>
+
+# Install dependencies with uv
+uv sync
+
+# Run the application
+uv run python src/main.py
+
+# Run tests
+uv run python -m pytest tests/
+```
 
 ### Project Structure
 ```

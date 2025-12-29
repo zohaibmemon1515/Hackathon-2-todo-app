@@ -14,17 +14,24 @@ A console-based todo application built with Python, following clean architecture
 ## Requirements
 
 - Python 3.13+
+- [uv](https://github.com/astral-sh/uv) package manager (for development)
 
 ## Installation
 
 1. Clone the repository
 2. Ensure Python 3.13+ is installed
-3. No additional dependencies required (uses Python standard library only)
+3. Install uv package manager: `curl -LsSf https://astral.sh/uv/install.sh | sh`
+4. Install project dependencies: `uv sync`
+5. The application itself uses only Python standard library (no runtime dependencies)
 
 ## Usage
 
 Run the application:
 ```bash
+# Using uv (recommended)
+uv run python src/main.py
+
+# Or directly with Python (if virtual environment is activated)
 python src/main.py
 ```
 
@@ -85,6 +92,10 @@ The application includes comprehensive test coverage:
 
 Run tests with:
 ```bash
+# Using uv (recommended)
+uv run python -m pytest
+
+# Or directly with Python (if virtual environment is activated)
 python -m pytest
 ```
 

@@ -13,6 +13,7 @@ Implementation of a console-based todo application MVP that allows users to add,
 
 **Language/Version**: Python 3.13+ (as required by constitution)
 **Primary Dependencies**: Python standard library only (no external dependencies as required by constitution)
+**Development Tools**: uv package manager for development workflow (as per updated constitution)
 **Storage**: In-memory only (no file/database persistence as required by constitution)
 **Testing**: pytest (Python standard testing framework)
 **Target Platform**: Console/terminal environment (as required by constitution)

@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bash -c \"source $HOME/.local/bin/env && timeout 3s uv run python src/main.py\")"
+    ]
+  }
+}

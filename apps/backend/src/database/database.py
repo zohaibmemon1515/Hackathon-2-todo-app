@@ -8,10 +8,9 @@ engine = create_engine(
     echo=settings.db_echo,
     pool_pre_ping=True,
     pool_recycle=300,
-    connect_args={"sslmode": "require"}
+    # Asyncpg ke liye 'sslmode' ko 'ssl' se replace karein
+    connect_args={"ssl": True} 
 )
-
-
 
 def get_session() -> Generator[Session, None, None]:
     """

@@ -1,0 +1,137 @@
+# Authentication API Contract
+
+**Feature**: Full-Stack Todo Web Application (Phase-II)
+**API Version**: 1.0
+**Date**: 2026-01-04
+
+## Overview
+
+This contract defines the authentication API endpoints for the Full-Stack Todo Web Application. All endpoints require JWT-based authentication as specified in the feature requirements.
+
+## Base URL
+
+```
+https://api.example.com/v1
+```
+
+## Common Headers
+
+All requests must include:
+
+- `Content-Type: application/json` (for requests with body)
+- `Authorization: Bearer <jwt_token>` (for authenticated requests)
+
+## Authentication Endpoints
+
+### POST /auth/register
+
+**Description**: Register a new user account
+
+**Request**:
+```json
+{
+  "email": "user@example.com",
+  "password": "secure_password_123",
+  "first_name": "Optional",
+  "last_name": "Optional"
+}
+```
+
+**Validation**:
+- Email must be valid format
+- Password must meet security requirements
+- Email must be unique
+
+**Success Response** (201 Created):
+```json
+{
+  "user": {
+    "id": "uuid-string",
+    "email": "user@example.com",
+    "first_name": "Optional",
+    "last_name": "Optional",
+    "created_at": "2023-01-01T00:00:00Z"
+  },
+  "token": "jwt_token_string"
+}
+```
+
+**Error Responses**:
+- 400: Invalid input data
+- 409: Email already exists
+- 500: Server error
+
+### POST /auth/login
+
+**Description**: Authenticate user and return JWT token
+
+**Request**:
+```json
+{
+  "email": "user@example.com",
+  "password": "secure_password_123"
+}
+```
+
+**Success Response** (200 OK):
+```json
+{
+  "user": {
+    "id": "uuid-string",
+    "email": "user@example.com",
+    "first_name": "Optional",
+    "last_name": "Optional",
+    "created_at": "2023-01-01T00:00:00Z"
+  },
+  "token": "jwt_token_string"
+}
+```
+
+**Error Responses**:
+- 400: Invalid input data
+- 401: Invalid credentials
+- 500: Server error
+
+### POST /auth/refresh
+
+**Description**: Refresh expired JWT token
+
+**Headers**:
+- `Authorization: Bearer <expired_token>`
+
+**Success Response** (200 OK):
+```json
+{
+  "token": "new_jwt_token_string"
+}
+```
+
+**Error Responses**:
+- 401: Invalid/expired token
+- 500: Server error
+
+### GET /auth/profile
+
+**Description**: Get authenticated user profile
+
+**Headers**:
+- `Authorization: Bearer <valid_token>`
+
+**Success Response** (200 OK):
+```json
+{
+  "user": {
+    "id": "uuid-string",
+    "email": "user@example.com",
+    "first_name": "Optional",
+    "last_name": "Optional",
+    "is_active": true,
+    "created_at": "2023-01-01T00:00:00Z",
+    "updated_at": "2023-01-01T00:00:00Z"
+  }
+}
+```
+
+**Error Responses**:
+- 401: Invalid/missing token
+- 500: Server error

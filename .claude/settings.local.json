@@ -1,7 +1,24 @@
 {
   "permissions": {
     "allow": [
-      "Bash(bash -c \"source $HOME/.local/bin/env && timeout 3s uv run python src/main.py\")"
+      "Bash(bash -c \"source $HOME/.local/bin/env && timeout 3s uv run python src/main.py\")",
+      "Bash(python -m pytest tests/unit/test_auth_service.py -v)",
+      "Bash(pip3 install pytest)",
+      "Bash(uv run pytest tests/unit/test_auth_service.py -v)",
+      "Bash(uv pip install pytest)",
+      "Bash(uv pip install -r requirements.txt)",
+      "Bash(sudo apt-get update)",
+      "Bash(sudo apt-get install -y libpq-dev python3-dev)",
+      "Bash(uv pip install fastapi sqlmodel pytest pytest-mock httpx)",
+      "Bash(uv pip install python-jose[cryptography] passlib[bcrypt] slowapi python-multipart)",
+      "Bash(python -m pytest apps/backend/tests/unit/test_auth_service.py -v)",
+      "Bash(.specify/scripts/bash/check-prerequisites.sh --json --require-tasks --include-tasks)",
+      "Bash(ls -la ../*/)",
+      "Bash(find ../frontend/src -name \"*.tsx\" -exec grep -l \"modal\\\\|Modal\\\\|loading\\\\|Loading\\\\|empty\" {} ;)",
+      "Bash(PYTHONPATH=. uv run pytest tests/unit/ -v)",
+      "Bash(PYTHONPATH=. uv run pytest tests/unit/test_auth_service.py -v)",
+      "Bash(uv pip install pyjwt)",
+      "Bash(uv pip install pydantic-settings)"
     ]
   }
 }

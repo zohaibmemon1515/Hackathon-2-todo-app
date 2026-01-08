@@ -212,6 +212,8 @@ See `.specify/memory/constitution.md` for code quality, testing, performance, se
 ## Active Technologies
 - Python 3.13+ (as required by constitution) + Python standard library only (no external dependencies as required by constitution) (002-phase1-todo-app)
 - In-memory only (no file/database persistence as required by constitution) (002-phase1-todo-app)
+- TypeScript 5.0+ (frontend), Python 3.11+ (backend) + Next.js 16+ with App Router, FastAPI 0.104+, SQLModel, Neon PostgreSQL, Better Auth (001-fullstack-todo-app)
+- Neon Serverless PostgreSQL database with SQLModel ORM (001-fullstack-todo-app)
 
 ## Recent Changes
 - 002-phase1-todo-app: Added Python 3.13+ (as required by constitution) + Python standard library only (no external dependencies as required by constitution)

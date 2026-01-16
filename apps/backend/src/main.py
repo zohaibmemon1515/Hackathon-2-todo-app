@@ -2,8 +2,8 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from contextlib import asynccontextmanager # Lifespan ke liye
-from .api import auth, tasks
+from contextlib import asynccontextmanager
+from .api import auth, tasks, chat  # <-- 1. Chat import add kiya
 from .database.database import engine
 from .models import user, task
 from sqlmodel import SQLModel
@@ -12,21 +12,17 @@ import asyncio
 # Create the rate limiter
 limiter = Limiter(key_func=get_remote_address)
 
-# Database tables create karne ke liye naya tarika (Async compatible)
+# Database tables creation logic
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: Create tables
-    # Agar aap asyncpg use kar rahe hain toh create_all ko run_sync mein chalana parta hai
     def create_db_and_tables():
         SQLModel.metadata.create_all(bind=engine)
     
-    # Isay startup par chalayein
     loop = asyncio.get_event_loop()
     await loop.run_in_executor(None, create_db_and_tables)
     yield
-    # Shutdown logic yahan aa sakti hai
 
-# Create the FastAPI app with lifespan
+# Create the FastAPI app
 app = FastAPI(
     title="Todo API",
     description="Full-Stack Todo Web Application API",
@@ -34,14 +30,14 @@ app = FastAPI(
     openapi_url="/api/v1/openapi.json",
     docs_url="/api/v1/docs",
     redoc_url="/api/v1/redoc",
-    lifespan=lifespan # on_event ki jagah lifespan use karein
+    lifespan=lifespan
 )
 
-# Add rate limiter to app
+# Rate Limiter Setup
 app.state.limiter = limiter
 app.add_exception_handler(429, _rate_limit_exceeded_handler)
 
-# Add CORS middleware
+# CORS Middleware (Frontend communication ke liye zaroori)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -51,7 +47,7 @@ app.add_middleware(
     expose_headers=["Access-Control-Allow-Origin"]
 )
 
-# Add security headers middleware
+# Security Headers
 @app.middleware("http")
 async def add_security_headers(request, call_next):
     response = await call_next(request)
@@ -61,9 +57,11 @@ async def add_security_headers(request, call_next):
     response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
     return response
 
-# Include API routers
+# --- 2. API ROUTERS REGISTRATION ---
+# Note: Hum prefix "/api/v1" use kar rahe hain consistent rehne ke liye
 app.include_router(auth.router, prefix="/api/v1", tags=["auth"])
 app.include_router(tasks.router, prefix="/api/v1", tags=["tasks"])
+app.include_router(chat.router, prefix="/api/v1", tags=["chat"]) # <-- 3. Chat register ho gaya
 
 @app.get("/")
 def read_root():

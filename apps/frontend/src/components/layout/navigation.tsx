@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth-context";
-import { LogOut, LayoutDashboard, User, Zap } from "lucide-react";
+import { LogOut, LayoutDashboard, User, Zap, MessageSquare } from "lucide-react";
 
 export default function Navigation() {
   const pathname = usePathname();
@@ -42,16 +42,28 @@ export default function Navigation() {
             </Link>
             
             {isAuthenticated ? (
-              <Link
-                href="/dashboard"
-                className={`px-6 py-2 text-xs font-black uppercase tracking-widest rounded-xl transition-all ${
-                  pathname.includes("/dashboard")
-                    ? "bg-white text-indigo-600 shadow-sm"
-                    : "text-slate-500 hover:text-slate-900"
-                }`}
-              >
-                Dashboard
-              </Link>
+              <>
+                <Link
+                  href="/dashboard"
+                  className={`px-6 py-2 text-xs font-black uppercase tracking-widest rounded-xl transition-all ${
+                    pathname.includes("/dashboard")
+                      ? "bg-white text-indigo-600 shadow-sm"
+                      : "text-slate-500 hover:text-slate-900"
+                  }`}
+                >
+                  Dashboard
+                </Link>
+                <Link
+                  href="/chat"
+                  className={`px-6 py-2 text-xs font-black uppercase tracking-widest rounded-xl transition-all ${
+                    pathname.includes("/chat")
+                      ? "bg-white text-indigo-600 shadow-sm"
+                      : "text-slate-500 hover:text-slate-900"
+                  }`}
+                >
+                  Chat
+                </Link>
+              </>
             ) : (
               <div className="flex">
                 {/* Sirf Features rakha hai, Pricing hata diya */}

@@ -12,7 +12,8 @@ import {
   ChevronRight,
   UserCircle,
   CalendarDays,
-  Activity
+  Activity,
+  MessageSquare
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -37,6 +38,7 @@ export default function DashboardLayout({
 
   const navItems = [
     { name: "Overview", icon: LayoutDashboard, href: "/dashboard" },
+    { name: "Chat", icon: MessageSquare, href: "/chat" },
   ];
 
   return (

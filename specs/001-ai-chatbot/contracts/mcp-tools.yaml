@@ -1,0 +1,155 @@
+# MCP Tools Contract for AI Todo Chatbot
+
+## Tool: add_task
+description: Creates a new todo task for the user
+input_schema:
+  type: object
+  properties:
+    title:
+      type: string
+      description: Title of the task to be created
+      required: true
+    description:
+      type: string
+      description: Optional description of the task
+    due_date:
+      type: string
+      format: date
+      description: Optional due date for the task
+output_schema:
+  type: object
+  properties:
+    success:
+      type: boolean
+      description: Whether the operation was successful
+    task_id:
+      type: string
+      description: ID of the created task
+    message:
+      type: string
+      description: Confirmation message
+error_cases:
+  - "Invalid input parameters"
+  - "Database connection error"
+
+## Tool: list_tasks
+description: Retrieves all todo tasks for the user
+input_schema:
+  type: object
+  properties: {}
+output_schema:
+  type: object
+  properties:
+    success:
+      type: boolean
+      description: Whether the operation was successful
+    tasks:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+            description: Task ID
+          title:
+            type: string
+            description: Task title
+          description:
+            type: string
+            description: Task description
+          completed:
+            type: boolean
+            description: Whether the task is completed
+          created_at:
+            type: string
+            format: date-time
+            description: When the task was created
+          updated_at:
+            type: string
+            format: date-time
+            description: When the task was last updated
+error_cases:
+  - "Database connection error"
+
+## Tool: complete_task
+description: Marks a specific todo task as completed
+input_schema:
+  type: object
+  properties:
+    task_id:
+      type: string
+      description: ID of the task to mark as completed
+      required: true
+output_schema:
+  type: object
+  properties:
+    success:
+      type: boolean
+      description: Whether the operation was successful
+    message:
+      type: string
+      description: Confirmation message
+error_cases:
+  - "Task not found"
+  - "Invalid task ID"
+  - "Database connection error"
+
+## Tool: delete_task
+description: Deletes a specific todo task
+input_schema:
+  type: object
+  properties:
+    task_id:
+      type: string
+      description: ID of the task to delete
+      required: true
+output_schema:
+  type: object
+  properties:
+    success:
+      type: boolean
+      description: Whether the operation was successful
+    message:
+      type: string
+      description: Confirmation message
+error_cases:
+  - "Task not found"
+  - "Invalid task ID"
+  - "Database connection error"
+
+## Tool: update_task
+description: Updates properties of a specific todo task
+input_schema:
+  type: object
+  properties:
+    task_id:
+      type: string
+      description: ID of the task to update
+      required: true
+    title:
+      type: string
+      description: New title for the task (optional)
+    description:
+      type: string
+      description: New description for the task (optional)
+    completed:
+      type: boolean
+      description: New completion status (optional)
+    due_date:
+      type: string
+      format: date
+      description: New due date for the task (optional)
+output_schema:
+  type: object
+  properties:
+    success:
+      type: boolean
+      description: Whether the operation was successful
+    message:
+      type: string
+      description: Confirmation message
+error_cases:
+  - "Task not found"
+  - "Invalid task ID"
+  - "Invalid input parameters"
+  - "Database connection error"

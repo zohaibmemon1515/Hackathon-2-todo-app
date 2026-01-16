@@ -32,6 +32,17 @@ class SecurityLogger:
         """Log security events"""
         self.logger.warning(f"SECURITY_EVENT - Type: {event_type}, Details: {details}")
 
+    def log_tool_usage(self, user_id: str, tool_name: str, success: bool, details: Dict[str, Any] = None):
+        """Log tool usage for audit purposes"""
+        log_entry = {
+            "timestamp": datetime.utcnow().isoformat(),
+            "user_id": user_id,
+            "tool_name": tool_name,
+            "success": success,
+            "details": details or {}
+        }
+        self.logger.info(f"TOOL_USAGE - {json.dumps(log_entry)}")
+
 
 # Initialize security logger
 security_logger = SecurityLogger()

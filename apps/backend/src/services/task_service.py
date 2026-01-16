@@ -8,11 +8,12 @@ from ..utils.logging import get_security_logger
 import uuid
 import logging
 
-# Initialize logger
+# Initialize loggers
 logger = logging.getLogger(__name__)
 security_logger = get_security_logger()
 
 
+# ------------------ TASK OPERATIONS ------------------
 def get_user_tasks(
     db: Session,
     user_id: uuid.UUID,
@@ -20,6 +21,7 @@ def get_user_tasks(
     limit: int = 50,
     offset: int = 0
 ) -> Tuple[List[TaskRead], int]:
+    """Get all tasks for a user with optional completion filter."""
     try:
         query = db.query(TaskModel).filter(TaskModel.user_id == user_id)
 
@@ -29,10 +31,7 @@ def get_user_tasks(
         total = query.count()
         tasks = query.offset(offset).limit(limit).all()
 
-        task_list = [
-            TaskRead.from_orm(task) if hasattr(TaskRead, 'from_orm') else TaskRead.model_validate(task)
-            for task in tasks
-        ]
+        task_list = [TaskRead.model_validate(task) for task in tasks]
 
         security_logger.log_sensitive_operation(
             "GET_USER_TASKS",
@@ -50,24 +49,19 @@ def get_user_tasks(
         raise
 
 
-def get_task_by_id(db: Session, task_id: str, user_id: uuid.UUID) -> Optional[TaskRead]:
+def get_task_by_id(db: Session, task_id: int, user_id: uuid.UUID) -> Optional[TaskRead]:
+    """Retrieve a single task by integer ID."""
     try:
-        try:
-            uuid_task_id = uuid.UUID(task_id)
-        except ValueError:
-            logger.warning(f"Invalid UUID format for task_id: {task_id}")
-            return None
-
         task = db.query(TaskModel).filter(
-            and_(TaskModel.id == uuid_task_id, TaskModel.user_id == user_id)
+            and_(TaskModel.id == task_id, TaskModel.user_id == user_id)
         ).first()
 
         if task:
-            result = TaskRead.from_orm(task) if hasattr(TaskRead, 'from_orm') else TaskRead.model_validate(task)
+            result = TaskRead.model_validate(task)
             security_logger.log_sensitive_operation(
                 "GET_TASK_BY_ID",
                 str(user_id),
-                {"task_id": str(uuid_task_id)}
+                {"task_id": task_id}
             )
             return result
         return None
@@ -81,18 +75,19 @@ def get_task_by_id(db: Session, task_id: str, user_id: uuid.UUID) -> Optional[Ta
 
 
 def create_task(db: Session, user_id: uuid.UUID, task_data: TaskCreate) -> TaskRead:
+    """Create a new task with auto-increment integer ID."""
     try:
         db_task = TaskModel(**task_data.model_dump(), user_id=user_id)
         db.add(db_task)
         db.commit()
         db.refresh(db_task)
 
-        result = TaskRead.from_orm(db_task) if hasattr(TaskRead, 'from_orm') else TaskRead.model_validate(db_task)
+        result = TaskRead.model_validate(db_task)
 
         security_logger.log_sensitive_operation(
             "CREATE_TASK",
             str(user_id),
-            {"task_id": str(db_task.id), "title": task_data.title}
+            {"task_id": db_task.id, "title": task_data.title}
         )
 
         return result
@@ -107,16 +102,11 @@ def create_task(db: Session, user_id: uuid.UUID, task_data: TaskCreate) -> TaskR
         raise
 
 
-def update_task(db: Session, task_id: str, user_id: uuid.UUID, task_data: TaskUpdate) -> Optional[TaskRead]:
+def update_task(db: Session, task_id: int, user_id: uuid.UUID, task_data: TaskUpdate) -> Optional[TaskRead]:
+    """Update all fields of a task."""
     try:
-        try:
-            uuid_task_id = uuid.UUID(task_id)
-        except ValueError:
-            logger.warning(f"Invalid UUID format for task_id: {task_id}")
-            return None
-
         task = db.query(TaskModel).filter(
-            and_(TaskModel.id == uuid_task_id, TaskModel.user_id == user_id)
+            and_(TaskModel.id == task_id, TaskModel.user_id == user_id)
         ).first()
 
         if not task:
@@ -129,12 +119,12 @@ def update_task(db: Session, task_id: str, user_id: uuid.UUID, task_data: TaskUp
         db.commit()
         db.refresh(task)
 
-        result = TaskRead.from_orm(task) if hasattr(TaskRead, 'from_orm') else TaskRead.model_validate(task)
+        result = TaskRead.model_validate(task)
 
         security_logger.log_sensitive_operation(
             "UPDATE_TASK",
             str(user_id),
-            {"task_id": str(uuid_task_id), "updated_fields": list(update_data.keys())}
+            {"task_id": task_id, "updated_fields": list(update_data.keys())}
         )
 
         return result
@@ -149,16 +139,11 @@ def update_task(db: Session, task_id: str, user_id: uuid.UUID, task_data: TaskUp
         raise
 
 
-def patch_task(db: Session, task_id: str, user_id: uuid.UUID, task_data: TaskPatch) -> Optional[TaskRead]:
+def patch_task(db: Session, task_id: int, user_id: uuid.UUID, task_data: TaskPatch) -> Optional[TaskRead]:
+    """Partially update a task."""
     try:
-        try:
-            uuid_task_id = uuid.UUID(task_id)
-        except ValueError:
-            logger.warning(f"Invalid UUID format for task_id: {task_id}")
-            return None
-
         task = db.query(TaskModel).filter(
-            and_(TaskModel.id == uuid_task_id, TaskModel.user_id == user_id)
+            and_(TaskModel.id == task_id, TaskModel.user_id == user_id)
         ).first()
 
         if not task:
@@ -171,12 +156,12 @@ def patch_task(db: Session, task_id: str, user_id: uuid.UUID, task_data: TaskPat
         db.commit()
         db.refresh(task)
 
-        result = TaskRead.from_orm(task) if hasattr(TaskRead, 'from_orm') else TaskRead.model_validate(task)
+        result = TaskRead.model_validate(task)
 
         security_logger.log_sensitive_operation(
             "PATCH_TASK",
             str(user_id),
-            {"task_id": str(uuid_task_id), "updated_fields": list(update_data.keys())}
+            {"task_id": task_id, "updated_fields": list(update_data.keys())}
         )
 
         return result
@@ -191,16 +176,11 @@ def patch_task(db: Session, task_id: str, user_id: uuid.UUID, task_data: TaskPat
         raise
 
 
-def delete_task(db: Session, task_id: str, user_id: uuid.UUID) -> bool:
+def delete_task(db: Session, task_id: int, user_id: uuid.UUID) -> bool:
+    """Delete a task by integer ID."""
     try:
-        try:
-            uuid_task_id = uuid.UUID(task_id)
-        except ValueError:
-            logger.warning(f"Invalid UUID format for task_id: {task_id}")
-            return False
-
         task = db.query(TaskModel).filter(
-            and_(TaskModel.id == uuid_task_id, TaskModel.user_id == user_id)
+            and_(TaskModel.id == task_id, TaskModel.user_id == user_id)
         ).first()
 
         if not task:
@@ -212,7 +192,7 @@ def delete_task(db: Session, task_id: str, user_id: uuid.UUID) -> bool:
         security_logger.log_sensitive_operation(
             "DELETE_TASK",
             str(user_id),
-            {"task_id": str(uuid_task_id)}
+            {"task_id": task_id}
         )
 
         return True

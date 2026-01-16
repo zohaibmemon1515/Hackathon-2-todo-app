@@ -15,7 +15,7 @@ class TaskBase(SQLModel):
 
 # ------------------ DB MODEL ------------------
 class Task(TaskBase, table=True):
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    id: int = Field(default=None, primary_key=True)  # auto-increment integer ID
 
     user_id: uuid.UUID = Field(
         foreign_key="user.id",
@@ -28,6 +28,20 @@ class Task(TaskBase, table=True):
     # relationship
     user: Optional["User"] = Relationship(back_populates="tasks")
 
+    def to_dict(self):
+        """Convert task to dictionary for easy serialization."""
+        return {
+            "id": self.id,
+            "title": self.title,
+            "description": self.description,
+            "is_completed": self.is_completed,
+            "due_date": self.due_date.isoformat() if self.due_date else None,
+            "priority": self.priority,
+            "user_id": str(self.user_id),
+            "created_at": self.created_at.isoformat(),
+            "updated_at": self.updated_at.isoformat()
+        }
+
 
 # ------------------ SCHEMAS ------------------
 class TaskCreate(TaskBase):
@@ -35,7 +49,7 @@ class TaskCreate(TaskBase):
 
 
 class TaskRead(TaskBase):
-    id: uuid.UUID
+    id: int  # integer task ID
     user_id: uuid.UUID
     created_at: datetime
     updated_at: datetime

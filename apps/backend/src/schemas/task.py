@@ -17,7 +17,7 @@ class TaskCreate(TaskBase):
 
 
 class TaskRead(TaskBase):
-    id: uuid.UUID
+    id: int
     user_id: uuid.UUID
     created_at: datetime
     updated_at: datetime

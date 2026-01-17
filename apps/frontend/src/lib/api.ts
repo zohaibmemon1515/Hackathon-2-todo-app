@@ -3,7 +3,7 @@ import { User, UserLogin, UserRegister } from '@/types/user';
 import { Task, TaskCreate, TaskUpdate } from '@/types/task';
 
 // Base API configuration
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://memonz-todo-app-phase-3.hf.space';
 
 // Base fetch function with error handling
 const baseFetch = async (endpoint: string, options: RequestInit = {}) => {

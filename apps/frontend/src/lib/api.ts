@@ -3,7 +3,7 @@ import { User, UserLogin, UserRegister } from '@/types/user';
 import { Task, TaskCreate, TaskUpdate } from '@/types/task';
 
 // Base API configuration
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 // Base fetch function with error handling
 const baseFetch = async (endpoint: string, options: RequestInit = {}) => {

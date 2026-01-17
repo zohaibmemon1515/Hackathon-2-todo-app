@@ -2,7 +2,7 @@
  * API service for chat functionality
  */
 
-const API_BASE_URL = "http://localhost:8000/api/v1";
+const API_BASE_URL = "https://memonz-todo-app-phase-3.hf.space/api/v1";
 
 interface SendMessageRequest {
   message: string;

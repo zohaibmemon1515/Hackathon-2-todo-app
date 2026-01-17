@@ -135,7 +135,7 @@ export const ChatWindow = ({ userId }: { userId: string }) => {
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [conversations, setConversations] = useState([]);
-  const [currentId, setCurrentId] = useState<string | null>(null);
+  const [currentId, setCurrentId] = useState<string | undefined>(undefined);
   const [isSidebarOpen, setSidebarOpen] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -212,7 +212,7 @@ export const ChatWindow = ({ userId }: { userId: string }) => {
           <button
             onClick={() => {
               setMessages([]);
-              setCurrentId(null);
+              setCurrentId(undefined);
             }}
             className="p-2 bg-slate-900 dark:bg-indigo-600 text-white rounded-xl hover:scale-105 active:scale-95 transition-all shadow-lg"
           >

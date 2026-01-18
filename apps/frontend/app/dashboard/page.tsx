@@ -34,7 +34,6 @@ import {
 } from "lucide-react";
 
 export default function DashboardPage() {
-  // Directly extract actions from hook
   const { tasks, loading, error, fetchTasks, createTask, updateTask, deleteTask } = useTaskState();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
@@ -42,82 +41,82 @@ export default function DashboardPage() {
     fetchTasks();
   }, [fetchTasks]);
 
-  // Statistics Calculation
   const total = tasks.length;
   const completed = tasks.filter((t) => t.is_completed).length;
   const highPriority = tasks.filter((t) => t.priority === "high" && !t.is_completed).length;
   const rate = total ? Math.round((completed / total) * 100) : 0;
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="space-y-6 lg:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800">
+      {/* Header Section - Mobile Optimized */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 bg-white dark:bg-slate-900 p-5 lg:p-6 rounded-[2rem] shadow-sm border border-slate-100 dark:border-slate-800">
         <div>
-          <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+          <h2 className="text-2xl lg:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
             Workspace Overview
           </h2>
-          <p className="text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
+          <p className="text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2 text-sm lg:text-base">
+            <Calendar className="h-4 w-4 text-indigo-500" />
             Everything looks good today.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-            <DialogTrigger asChild>
-              <button className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-2xl font-semibold transition-all shadow-xl shadow-indigo-200 dark:shadow-none active:scale-95">
-                <PlusCircle className="h-5 w-5" />
-                New Task
-              </button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-md rounded-3xl border-none shadow-2xl">
-              <DialogHeader>
-                <DialogTitle className="text-2xl font-bold">Create New Task</DialogTitle>
-                <DialogDescription>
-                  Enter the details of your next big goal.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="py-4">
-                <TaskCreateForm 
-                  onTaskCreated={async (data) => {
-                    await createTask(data);
-                    setIsCreateModalOpen(false);
-                  }} 
-                />
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
+        <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+          <DialogTrigger asChild>
+            <button className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3.5 rounded-2xl font-bold transition-all shadow-xl shadow-indigo-200 dark:shadow-none active:scale-95">
+              <PlusCircle className="h-5 w-5" />
+              New Task
+            </button>
+          </DialogTrigger>
+          {/* Modal responsiveness: Mobile par 95% width aur desktop par standard width */}
+          <DialogContent className="w-[95%] max-w-md rounded-[2rem] border-none shadow-2xl p-6">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold">Create New Task</DialogTitle>
+              <DialogDescription>
+                Enter the details of your next big goal.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+              <TaskCreateForm 
+                onTaskCreated={async (data) => {
+                  await createTask(data);
+                  setIsCreateModalOpen(false);
+                }} 
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
-      {/* Stats Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Stats Cards Grid - 1 col on mobile, 2 on tablet, 4 on desktop */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
         <StatCard title="Total Tasks" value={total} icon={ClipboardList} color="text-blue-600" bg="bg-blue-50 dark:bg-blue-900/20" />
         <StatCard title="Completed" value={completed} icon={CheckCircle} color="text-emerald-600" bg="bg-emerald-50 dark:bg-emerald-900/20" />
         <StatCard title="Urgent" value={highPriority} icon={Clock} color="text-rose-600" bg="bg-rose-50 dark:bg-rose-900/20" />
         <StatCard title="Success Rate" value={`${rate}%`} icon={TrendingUp} color="text-amber-600" bg="bg-amber-50 dark:bg-amber-900/20" />
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+      {/* Main Content Layout - Stack on mobile, side-by-side on XL */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-8">
+        
+        {/* Task List Section */}
         <div className="xl:col-span-2 space-y-6">
-          <Card className="border-none shadow-sm bg-white dark:bg-slate-900 rounded-2xl overflow-hidden">
-            <CardHeader className="flex flex-row items-center justify-between border-b border-slate-50 dark:border-slate-800 p-8">
+          <Card className="border-none shadow-sm bg-white dark:bg-slate-900 rounded-3xl overflow-hidden">
+            <CardHeader className="flex flex-row items-center justify-between border-b border-slate-50 dark:border-slate-800 p-5 lg:p-8">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
+                <div className="p-2.5 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl">
                   <Activity className="h-5 w-5 text-indigo-600" />
                 </div>
                 <div>
                   <CardTitle className="text-xl font-bold">Recent Tasks</CardTitle>
-                  <CardDescription>Your latest activities</CardDescription>
+                  <CardDescription className="text-xs lg:text-sm">Your latest activities</CardDescription>
                 </div>
               </div>
-              <button className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors">
+              <button className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors">
                 <Filter className="h-5 w-5 text-slate-400" />
               </button>
             </CardHeader>
-            <CardContent className="p-8 pt-4">
-              {/* CLEANED: Directly passing hook functions */}
+            <CardContent className="p-4 lg:p-8 pt-4">
               <TaskList
                 tasks={tasks}
                 onTaskUpdated={updateTask}
@@ -127,20 +126,22 @@ export default function DashboardPage() {
           </Card>
         </div>
 
-        <div className="space-y-6">
-          <Card className="border-none shadow-sm rounded-2xl bg-white dark:bg-slate-900 overflow-hidden">
-            <CardHeader className="p-8 pb-4">
+        {/* Sidebar Widgets */}
+        <div className="space-y-6 lg:space-y-8">
+          <Card className="border-none shadow-sm rounded-3xl bg-white dark:bg-slate-900 overflow-hidden">
+            <CardHeader className="p-6 lg:p-8 pb-4">
               <CardTitle className="text-lg font-bold">Priority Breakdown</CardTitle>
             </CardHeader>
-            <CardContent className="p-8 pt-0 space-y-5">
+            <CardContent className="p-6 lg:p-8 pt-0 space-y-5">
                <PriorityBar label="High" count={highPriority} total={total} color="bg-rose-500" />
                <PriorityBar label="Medium" count={tasks.filter(t => t.priority === 'medium').length} total={total} color="bg-amber-500" />
                <PriorityBar label="Low" count={tasks.filter(t => t.priority === 'low').length} total={total} color="bg-emerald-500" />
             </CardContent>
           </Card>
 
+          {/* Upgrade Banner - Mobile UI Adjustment */}
           <Card className="bg-slate-900 text-white border-none shadow-2xl rounded-[2.5rem] relative overflow-hidden group">
-            <CardContent className="p-8 space-y-6 relative z-10">
+            <CardContent className="p-6 lg:p-8 space-y-6 relative z-10">
               <div className="h-12 w-12 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center">
                 <Zap className="h-6 w-6 text-indigo-400 fill-indigo-400" />
               </div>
@@ -150,10 +151,12 @@ export default function DashboardPage() {
                   Invite your team to collaborate on projects and sync in real-time.
                 </p>
               </div>
-              <button className="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-3.5 rounded-2xl font-bold transition-all shadow-lg shadow-indigo-900/50 active:scale-95">
+              <button className="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-4 rounded-2xl font-bold transition-all shadow-lg shadow-indigo-900/50 active:scale-95">
                 Unlock Pro Features
               </button>
             </CardContent>
+            {/* Design detail for flair */}
+            <div className="absolute -right-4 -bottom-4 h-24 w-24 bg-indigo-600/20 rounded-full blur-3xl" />
           </Card>
         </div>
       </div>
@@ -161,18 +164,18 @@ export default function DashboardPage() {
   );
 }
 
-// Helper components unchanged (StatCard & PriorityBar)
+// Updated StatCard: Mobile Friendly
 function StatCard({ title, value, icon: Icon, color, bg }: any) {
     return (
-      <Card className="border-none shadow-sm bg-white dark:bg-slate-900 rounded-2xl hover:shadow-xl hover:-translate-y-1 transition-all duration-500 overflow-hidden">
-        <CardContent className="p-7">
+      <Card className="border-none shadow-sm bg-white dark:bg-slate-900 rounded-[1.8rem] hover:shadow-xl transition-all duration-300 overflow-hidden">
+        <CardContent className="p-5 lg:p-6">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{title}</p>
-              <p className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">{value}</p>
+              <p className="text-[10px] lg:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">{title}</p>
+              <p className="text-3xl lg:text-4xl font-black text-slate-900 dark:text-white tracking-tight">{value}</p>
             </div>
-            <div className={cn("p-4 rounded-2xl", bg)}>
-              <Icon className={cn("h-7 w-7", color)} />
+            <div className={cn("p-3.5 lg:p-4 rounded-2xl", bg)}>
+              <Icon className={cn("h-6 w-6 lg:h-7 lg:w-7", color)} />
             </div>
           </div>
         </CardContent>
@@ -184,7 +187,7 @@ function PriorityBar({ label, count, total, color }: any) {
     const percentage = total > 0 ? (count / total) * 100 : 0;
     return (
       <div className="space-y-2">
-        <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-slate-400">
+        <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-400">
           <span>{label}</span>
           <span className="text-slate-900 dark:text-slate-100">{count} Tasks</span>
         </div>

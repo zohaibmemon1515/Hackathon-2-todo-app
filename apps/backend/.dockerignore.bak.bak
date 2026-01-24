@@ -1,0 +1,68 @@
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.coverage
+
+# Development environments
+.venv/
+.env
+.env.*
+*.env
+
+# IDE/editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Build outputs
+build/
+dist/
+out/
+tmp/
+temp/
+*.tmp
+
+# Test files and directories
+test/
+tests/
+
+# Version control
+.git/
+.gitignore
+.svn/
+.hg/
+
+# Secrets and certificates
+*.pem
+*.key
+*.crt
+
+# Local configuration
+config.local.*
+*.local.yml
+.local/
+local/
+
+# Documentation
+APIDOC.md
+README*
+*.md
+docs/
+
+# Docker files
+Dockerfile*
+docker-compose*
+
+# Project-specific
+alembic/README.md
+alembic/script.py.mako
+helm-chart/
+
+# Miscellaneous
+*.log
+
+# Exclude the Dockerfile itself from being ignored
+!Dockerfile

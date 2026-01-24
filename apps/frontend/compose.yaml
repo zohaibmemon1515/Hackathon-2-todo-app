@@ -1,0 +1,25 @@
+services:
+  typescript-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: typescript-app:latest
+    container_name: typescript-app
+    ports:
+      - "3000:3000"  # Next.js default port
+    restart: unless-stopped
+    init: true
+    # env_file: ./.env.local  # Uncomment if .env.local exists
+    # If you have a .env file, you can use it instead
+    # env_file: ./.env  # Uncomment if .env exists
+    # No external dependencies detected in README or source code
+    # If you add a database or other service, add it below
+    # networks:
+    #   - appnet
+
+# No external services (database, cache, etc.) detected in README or source code
+# If you add such services, define them below and add depends_on to typescript-app
+
+# networks:
+#   appnet:
+#     driver: bridge

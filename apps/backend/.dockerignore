@@ -1,0 +1,78 @@
+# Python bytecode and cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# Test and coverage outputs
+test/
+tests/
+*.cover
+*.coverage
+
+# IDE/editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Build outputs
+dist/
+build/
+out/
+
+# Debug and log files
+debug/
+*.log
+
+# Version control
+.git/
+.gitignore
+.svn/
+.hg/
+
+# Environment and secrets
+.env
+.env.*
+*.env
+*.pem
+*.key
+*.crt
+config.local.*
+*.local.yml
+
+# Documentation and markdown
+APIDOC.md
+README*
+*.md
+/docs/
+
+# Docker and Compose files
+Dockerfile*
+docker-compose*
+
+# Temporary and local files
+tmp/
+temp/
+*.tmp
+.local/
+local/
+
+# Backup files
+*.bak
+
+# Project-specific: Helm chart templates (if not needed in build)
+helm-chart/
+
+# Alembic migration scripts cache (if any)
+alembic/versions/__pycache__/
+
+# Miscellaneous
+.python-version

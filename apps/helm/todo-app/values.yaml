@@ -1,0 +1,17 @@
+frontend:
+  image: todo-frontend
+  tag: latest
+  replicaCount: 1
+  imagePullPolicy: IfNotPresent
+  service:
+    type: NodePort
+    port: 80
+
+backend:
+  image: todo-backend
+  tag: latest
+  replicaCount: 1
+  imagePullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8000

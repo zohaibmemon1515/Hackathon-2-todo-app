@@ -21,6 +21,7 @@ from ..mcp.server import call_mcp_tool
 # --------------------------------------------------
 load_dotenv()
 
+OPENAI_API_KEY = os.getenv("GEMINI_API_KEY")
 # --------------------------------------------------
 # Tool Parameter Schemas
 # --------------------------------------------------
@@ -127,7 +128,7 @@ async def list_tasks(params: ListTasksParams, user_id: str):
 # --------------------------------------------------
 
 external_client = AsyncOpenAI(
-    api_key=os.getenv("GEMINI_API_KEY"),
+    api_key=OPENAI_API_KEY,
     base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
 )
 

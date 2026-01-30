@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState, useCallback, useRef } from 'react';
-import { Task, TaskCreate, TaskUpdate } from '@/types/task';
-import { taskAPI } from '@/lib/api';
+import { useState, useCallback, useRef } from "react";
+import { Task, TaskCreate, TaskUpdate } from "@/types/task";
+import { taskAPI } from "@/lib/api";
 
 export const useTaskState = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -10,33 +10,37 @@ export const useTaskState = () => {
   const [error, setError] = useState<string | null>(null);
   const [currentTask, setCurrentTask] = useState<Task | null>(null);
 
-  // 🔒 prevent duplicate calls per task
+  // 🔒 Prevent duplicate requests
   const inFlight = useRef<Set<string>>(new Set());
 
   const fetchTasks = useCallback(async () => {
-    if (tasks.length > 0) return;
-
     setLoading(true);
     setError(null);
     try {
       const res = await taskAPI.getAll();
       setTasks(res.tasks || []);
     } catch (e: any) {
-      setError(e.message || 'Failed to fetch tasks');
+      setError(e.message || "Failed to fetch tasks");
     } finally {
       setLoading(false);
     }
-  }, [tasks.length]);
+  }, []);
 
-  const createTask = useCallback(async (data: Omit<TaskCreate, 'user_id'>) => {
+  const createTask = useCallback(async (data: Omit<TaskCreate, "user_id">) => {
+    const key = JSON.stringify(data);
+    if (inFlight.current.has(key)) return;
+
+    inFlight.current.add(key);
     setLoading(true);
     setError(null);
+
     try {
-      const task = await taskAPI.create(data);
+      const task = await taskAPI.create(data); // ✅ ONLY API CALL
       setTasks(prev => [task, ...prev]);
     } catch (e: any) {
-      setError(e.message || 'Failed to create task');
+      setError(e.message || "Failed to create task");
     } finally {
+      inFlight.current.delete(key);
       setLoading(false);
     }
   }, []);
@@ -52,24 +56,7 @@ export const useTaskState = () => {
       setTasks(prev => prev.map(t => (t.id === id ? updated : t)));
       setCurrentTask(c => (c?.id === id ? updated : c));
     } catch (e: any) {
-      setError(e.message || 'Failed to update task');
-    } finally {
-      inFlight.current.delete(id);
-      setLoading(false);
-    }
-  }, []);
-
-  const patchTask = useCallback(async (id: string, data: { is_completed?: boolean }) => {
-    if (inFlight.current.has(id)) return;
-    inFlight.current.add(id);
-
-    setLoading(true);
-    setError(null);
-    try {
-      const updated = await taskAPI.patch(id, data);
-      setTasks(prev => prev.map(t => (t.id === id ? updated : t)));
-    } catch (e: any) {
-      setError(e.message || 'Failed to update task');
+      setError(e.message || "Failed to update task");
     } finally {
       inFlight.current.delete(id);
       setLoading(false);
@@ -83,11 +70,10 @@ export const useTaskState = () => {
     setLoading(true);
     setError(null);
     try {
-      await taskAPI.delete(id); // ✅ ONLY DELETE CALL
+      await taskAPI.delete(id);
       setTasks(prev => prev.filter(t => t.id !== id));
-      setCurrentTask(c => (c?.id === id ? null : c));
     } catch (e: any) {
-      setError(e.message || 'Failed to delete task');
+      setError(e.message || "Failed to delete task");
     } finally {
       inFlight.current.delete(id);
       setLoading(false);
@@ -102,7 +88,6 @@ export const useTaskState = () => {
     fetchTasks,
     createTask,
     updateTask,
-    patchTask,
     deleteTask,
     setCurrentTask,
   };

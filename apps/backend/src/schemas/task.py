@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, List, Dict, Any
 from datetime import datetime
 import uuid
 
@@ -10,6 +10,10 @@ class TaskBase(BaseModel):
     is_completed: bool = False
     due_date: Optional[datetime] = None
     priority: str = Field(default="medium", pattern="^(low|medium|high)$")
+    # Fields added by migration
+    reminder_at: Optional[datetime] = None
+    # Additional fields for advanced features
+    tags: Optional[List[str]] = []
 
 
 class TaskCreate(TaskBase):
@@ -21,6 +25,7 @@ class TaskRead(TaskBase):
     user_id: uuid.UUID
     created_at: datetime
     updated_at: datetime
+    tags: Optional[List[str]] = []
 
     class Config:
         from_attributes = True
@@ -32,6 +37,8 @@ class TaskUpdate(BaseModel):
     is_completed: Optional[bool] = None
     due_date: Optional[datetime] = None
     priority: Optional[str] = Field(default=None, pattern="^(low|medium|high)$")
+    reminder_at: Optional[datetime] = None
+    tags: Optional[List[str]] = None  # Include tags in update
 
 
 class TaskPatch(BaseModel):
@@ -40,6 +47,8 @@ class TaskPatch(BaseModel):
     is_completed: Optional[bool] = None
     due_date: Optional[datetime] = None
     priority: Optional[str] = Field(default=None, pattern="^(low|medium|high)$")
+    reminder_at: Optional[datetime] = None
+    tags: Optional[List[str]] = None  # Include tags in patch
 
 
 class TaskListResponse(BaseModel):

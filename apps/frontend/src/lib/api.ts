@@ -84,8 +84,38 @@ export const authAPI = {
 
 // Task API functions
 export const taskAPI = {
-  getAll: async (): Promise<{ tasks: Task[]; total: number; limit: number; offset: number }> => {
-    return baseFetch('/api/v1/tasks');
+  getAll: async (
+    params?: {
+      completed?: boolean;
+      query?: string;
+      tags?: string[];
+      due_date_from?: string;
+      due_date_to?: string;
+      sort_by?: 'title' | 'priority' | 'due_date' | 'created_at' | 'updated_at';
+      sort_order?: 'asc' | 'desc';
+      limit?: number;
+      offset?: number;
+    }
+  ): Promise<{ tasks: Task[]; total: number; limit: number; offset: number }> => {
+    // Build query string from parameters
+    const queryParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          if (Array.isArray(value)) {
+            // For tags, we need to use the format tags[]=value1&tags[]=value2
+            value.forEach(v => queryParams.append(`${key}[]`, String(v)));
+          } else {
+            queryParams.append(key, String(value));
+          }
+        }
+      });
+    }
+
+    const queryString = queryParams.toString();
+    const endpoint = queryString ? `/api/v1/tasks?${queryString}` : '/api/v1/tasks';
+
+    return baseFetch(endpoint);
   },
 
   getById: async (id: string): Promise<Task> => {

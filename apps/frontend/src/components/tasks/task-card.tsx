@@ -1,132 +1,233 @@
 "use client";
 
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Pencil, Trash2, Check, X, Clock, Zap } from 'lucide-react';
-import { Task } from '@/types/task';
-import TaskEditForm from './task-edit-form';
+import { useState } from "react";
+import { motion } from "framer-motion";
+import {
+  Pencil,
+  Trash2,
+  Check,
+  Clock,
+  Tag,
+  Repeat,
+  Bell,
+  Sparkles,
+} from "lucide-react";
+import { Task } from "@/types/task";
+import TaskEditForm from "./task-edit-form";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
-export default function TaskCard({ task, onTaskUpdated, onTaskDeleted }: { task: Task, onTaskUpdated: any, onTaskDeleted: any }) {
+export default function TaskCard({
+  task,
+  onTaskUpdated,
+  onTaskDeleted,
+}: {
+  task: Task;
+  onTaskUpdated: any;
+  onTaskDeleted: any;
+}) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Priority themes
   const themes = {
-    high: { card: "border-l-rose-500", chip: "bg-rose-50 text-rose-600 border-rose-100", glow: "group-hover:border-rose-200" },
-    medium: { card: "border-l-amber-500", chip: "bg-amber-50 text-amber-600 border-amber-100", glow: "group-hover:border-amber-200" },
-    low: { card: "border-l-emerald-500", chip: "bg-emerald-50 text-emerald-600 border-emerald-100", glow: "group-hover:border-emerald-200" }
+    high: {
+      card: "border-l-rose-500 bg-gradient-to-br from-rose-50/20 to-rose-50/10",
+      glow: "group-hover:shadow-[0_12px_25px_-5px_rgba(239,68,68,0.4)]",
+      gradient: "bg-gradient-to-r from-rose-400 via-pink-400 to-rose-500",
+    },
+    medium: {
+      card: "border-l-amber-500 bg-gradient-to-br from-amber-50/20 to-amber-50/10",
+      glow: "group-hover:shadow-[0_12px_25px_-5px_rgba(251,191,36,0.4)]",
+      gradient: "bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500",
+    },
+    low: {
+      card: "border-l-emerald-500 bg-gradient-to-br from-emerald-50/20 to-emerald-50/10",
+      glow: "group-hover:shadow-[0_12px_25px_-5px_rgba(34,197,94,0.4)]",
+      gradient: "bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500",
+    },
   };
 
   const style = themes[task.priority?.toLowerCase() as keyof typeof themes] || themes.low;
-
-  // Priority ka pehla letter nikalne ke liye logic
-  const priorityInitial = task.priority?.charAt(0).toUpperCase() || 'L';
+  const priorityInitial = task.priority?.charAt(0).toUpperCase() || "L";
 
   return (
     <>
       <motion.div
         layout
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className={`relative group bg-white rounded-2xl border border-slate-100 border-l-[5px] ${style.card} transition-all duration-300 hover:shadow-xl hover:shadow-slate-100 ${style.glow}`}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        whileHover={{ scale: 1.04 }}
+        className={`relative group bg-white/30 backdrop-blur-xl rounded-3xl border border-slate-100 border-l-[6px] ${style.card} transition-all duration-300 hover:shadow-2xl ${style.glow} overflow-hidden`}
       >
-        <div className={`p-4 sm:p-6 flex flex-col gap-4 ${task.is_completed ? 'bg-slate-50/40 opacity-75' : ''}`}>
-          
-          {/* TOP SECTION */}
+        {/* High Priority Sparkle */}
+        {task.priority?.toLowerCase() === "high" && (
+          <motion.div
+            className="absolute top-2 right-2"
+            animate={{ rotate: [0, 360] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
+            <Sparkles size={18} className="text-rose-400/70" />
+          </motion.div>
+        )}
+
+        {/* Card Content */}
+        <div className={`p-5 flex flex-col gap-4 ${task.is_completed ? "opacity-80" : ""}`}>
+          {/* TOP: Priority & Actions */}
           <div className="flex items-center justify-between">
-            {/* Ab yahan sirf Initial (H/M/L) dikhayi dega */}
-            <div 
-              title={task.priority} // Hover karne par poora naam dikhega
-              className={`w-6 h-6 rounded-md border text-[10px] font-black flex items-center justify-center shrink-0 ${style.chip}`}
+            <div
+              title={task.priority}
+              className="w-7 h-7 rounded-lg flex items-center justify-center font-black text-[11px] shrink-0 shadow-md"
             >
-              {priorityInitial}
+              <motion.div
+                className={`text-transparent bg-clip-text font-extrabold ${style.gradient}`}
+                animate={{ backgroundPositionX: [0, 100] }}
+                transition={{ duration: 2, repeat: Infinity, repeatType: "mirror" }}
+              >
+                {priorityInitial}
+              </motion.div>
             </div>
-            
-            <div className="flex items-center gap-1 sm:opacity-0 group-hover:opacity-100 transition-all">
-              <button 
-                onClick={() => setIsModalOpen(true)} 
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:text-indigo-600 transition-all"
+
+            {/* Action Buttons */}
+            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="w-9 h-9 rounded-lg flex items-center justify-center text-indigo-500 hover:bg-indigo-100 transition-all"
               >
-                <Pencil size={15} />
+                <Pencil size={16} />
               </button>
-              <button 
-                onClick={() => onTaskDeleted(task.id)} 
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-all"
+              <button
+                onClick={() => onTaskDeleted(task.id)}
+                className="w-9 h-9 rounded-lg flex items-center justify-center text-rose-500 hover:bg-rose-100 transition-all"
               >
-                <Trash2 size={15} />
+                <Trash2 size={16} />
               </button>
             </div>
           </div>
 
-          {/* CONTENT SECTION */}
-          <div className="flex items-start gap-3">
+          {/* TITLE & DESCRIPTION */}
+          <div className="flex items-start gap-4">
             <button
-              onClick={() => onTaskUpdated({ ...task, is_completed: !task.is_completed })}
-              className={`mt-1 w-5 h-5 shrink-0 rounded-md border-2 flex items-center justify-center transition-all 
-              ${task.is_completed ? 'bg-indigo-600 border-indigo-600 text-white' : 'border-slate-200 hover:border-indigo-400'}`}
+              onClick={() =>
+                onTaskUpdated({ ...task, is_completed: !task.is_completed })
+              }
+              className={`mt-1 w-6 h-6 shrink-0 rounded-md border-2 flex items-center justify-center transition-all ${
+                task.is_completed
+                  ? "bg-indigo-600 border-indigo-600 text-white shadow-inner"
+                  : "border-slate-200 hover:border-indigo-400"
+              }`}
             >
-              {task.is_completed && <Check size={12} strokeWidth={4} />}
+              {task.is_completed && <Check size={14} strokeWidth={4} />}
             </button>
+
             <div className="min-w-0 flex-1">
-              <h3 className={`text-base font-bold leading-tight ${task.is_completed ? 'text-slate-400 line-through' : 'text-slate-800'}`}>
+              <h3
+                className={`text-base font-bold leading-tight ${
+                  task.is_completed ? "text-slate-400 line-through" : "text-slate-900"
+                }`}
+              >
                 {task.title}
               </h3>
               {task.description && (
-                <p className="mt-1 text-sm text-slate-500 line-clamp-1 group-hover:line-clamp-none transition-all">
+                <p className="mt-1 text-sm text-slate-500 line-clamp-1 group-hover:line-clamp-none transition-all duration-300">
                   {task.description}
                 </p>
+              )}
+
+              {/* TAGS */}
+              {task.tags && task.tags.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {task.tags.slice(0, 3).map((tag, i) => (
+                    <motion.span
+                      key={i}
+                      whileHover={{
+                        scale: 1.1,
+                        backgroundColor: "#C7D2FE",
+                        color: "#1E3A8A",
+                        boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+                      }}
+                      className="inline-flex items-center gap-1 bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full cursor-pointer shadow-sm transition-all duration-200"
+                      title={`Tag: ${tag}`}
+                    >
+                      <Tag size={10} />
+                      {tag}
+                    </motion.span>
+                  ))}
+                  {task.tags.length > 3 && (
+                    <span className="text-xs text-slate-400 ml-1">+{task.tags.length - 3} more</span>
+                  )}
+                </div>
               )}
             </div>
           </div>
 
           {/* FOOTER */}
-          <div className="flex items-center justify-between pt-3 border-t border-slate-50">
-            <div className="flex items-center gap-2 text-slate-400">
+          <div className="flex flex-wrap items-center justify-between pt-3 border-t border-slate-100 gap-2">
+            <div className="flex items-center gap-3 text-slate-400 flex-wrap text-[11px] font-bold uppercase tracking-tight">
               {task.due_date && (
-                <div className="flex items-center gap-1 text-[11px] font-bold uppercase tracking-tight">
+                <div className="flex items-center gap-1">
                   <Clock size={12} />
-                  {new Date(task.due_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
+                  {new Date(task.due_date).toLocaleDateString("en-GB", {
+                    day: "2-digit",
+                    month: "short",
+                  })}
+                </div>
+              )}
+              {task.recurrence_rule && (
+                <div className="flex items-center gap-1">
+                  <Repeat size={12} />
+                  {task.recurrence_rule.frequency.charAt(0).toUpperCase() +
+                    task.recurrence_rule.frequency.slice(1)}
+                </div>
+              )}
+              {task.reminder_config && (
+                <div className="flex items-center gap-1">
+                  <Bell size={12} />
+                  {task.reminder_config.offset_minutes}m
                 </div>
               )}
             </div>
-            <div className={`h-1.5 w-1.5 rounded-full ${task.is_completed ? 'bg-emerald-500' : 'bg-slate-200'}`} />
+
+            {/* Animated Dot */}
+            <motion.div
+              className="h-2 w-2 rounded-full"
+              animate={{
+                scale: [1, 1.6, 1],
+                backgroundColor: ["#34D399", "#3B82F6", "#FBBF24", "#34D399"],
+              }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+            />
           </div>
         </div>
       </motion.div>
 
-      <AnimatePresence>
-        {isModalOpen && (
-          <div className="fixed inset-0 z-100 flex items-end sm:items-center justify-center p-0 sm:p-4">
-            <motion.div 
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              onClick={() => setIsModalOpen(false)}
-              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" 
-            />
-            
-            <motion.div 
-              initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="relative w-full max-w-lg bg-white shadow-2xl overflow-hidden rounded-t-3xl sm:rounded-3xl"
-            >
-              <div className="p-6 sm:p-8">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-xl font-black text-slate-800 tracking-tight italic">Update Task</h2>
-                  <button 
-                    onClick={() => setIsModalOpen(false)} 
-                    className="w-9 h-9 flex items-center justify-center rounded-full bg-slate-50 text-slate-400 hover:text-rose-500 transition-colors"
-                  >
-                    <X size={20} />
-                  </button>
-                </div>
+      {/* EDIT MODAL */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="w-[95%] sm:max-w-[650px] p-0 border-none bg-transparent shadow-none overflow-visible">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Update Task</DialogTitle>
+            <DialogDescription>Edit the details of your task</DialogDescription>
+          </DialogHeader>
 
-                <TaskEditForm 
-                  task={task} 
-                  onClose={() => setIsModalOpen(false)} 
-                  onTaskUpdated={onTaskUpdated} 
-                />
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+          {/* Premium blurred gradient background */}
+          <div className="absolute inset-0 bg-gradient-to-r from-indigo-400/20 via-pink-300/20 to-rose-400/20 blur-[120px] animate-pulse -z-10" />
+
+          {isModalOpen && task && (
+            <TaskEditForm
+              task={task}
+              onClose={() => setIsModalOpen(false)}
+              onTaskUpdated={async (updatedData) => {
+                await onTaskUpdated(updatedData);
+                setIsModalOpen(false);
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

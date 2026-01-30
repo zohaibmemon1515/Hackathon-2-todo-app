@@ -9,6 +9,19 @@ export interface Task {
   updated_at: string; // ISO date string
   due_date?: string; // ISO date string
   priority: 'low' | 'medium' | 'high';
+  tags?: string[]; // Array of tag names
+  recurrence_rule?: {
+    frequency: 'daily' | 'weekly' | 'monthly';
+    interval: number;
+    end_condition: {
+      type: 'on_date' | 'after_occurrences';
+      value: string | number; // date string or occurrence count
+    };
+  }; // Recurrence configuration
+  reminder_config?: {
+    offset_minutes: number;
+    notification_method: 'email' | 'push';
+  }; // Reminder configuration
   user_id: string;
 }
 
@@ -17,6 +30,19 @@ export interface TaskCreate {
   description?: string;
   due_date?: string; // ISO date string
   priority?: 'low' | 'medium' | 'high';
+  tags?: string[]; // Array of tag names
+  recurrence_rule?: {
+    frequency: 'daily' | 'weekly' | 'monthly';
+    interval: number;
+    end_condition: {
+      type: 'on_date' | 'after_occurrences';
+      value: string | number; // date string or occurrence count
+    };
+  }; // Recurrence configuration
+  reminder_config?: {
+    offset_minutes: number;
+    notification_method: 'email' | 'push';
+  }; // Reminder configuration
 }
 
 export interface TaskUpdate {
@@ -25,6 +51,19 @@ export interface TaskUpdate {
   is_completed?: boolean;
   due_date?: string; // ISO date string
   priority?: 'low' | 'medium' | 'high';
+  tags?: string[]; // Array of tag names
+  recurrence_rule?: {
+    frequency: 'daily' | 'weekly' | 'monthly';
+    interval: number;
+    end_condition: {
+      type: 'on_date' | 'after_occurrences';
+      value: string | number; // date string or occurrence count
+    };
+  }; // Recurrence configuration
+  reminder_config?: {
+    offset_minutes: number;
+    notification_method: 'email' | 'push';
+  }; // Reminder configuration
 }
 
 export interface TaskListResponse {

@@ -1,0 +1,547 @@
+openapi: 3.0.3
+info:
+  title: Advanced Todo Tasks API
+  description: API for managing tasks with advanced features including tags, search, and filters
+  version: 1.0.0
+servers:
+  - url: http://localhost:8000
+    description: Development server
+
+paths:
+  /tasks:
+    get:
+      summary: Get tasks with advanced filtering and search
+      description: Retrieve tasks with optional search, filtering, and sorting capabilities
+      parameters:
+        - name: query
+          in: query
+          description: Search keywords to match in title or description
+          required: false
+          schema:
+            type: string
+        - name: tags
+          in: query
+          description: Filter tasks by tag names (multiple allowed)
+          required: false
+          style: form
+          explode: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: due_date_from
+          in: query
+          description: Filter tasks with due date >= this date (ISO 8601 format)
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: due_date_to
+          in: query
+          description: Filter tasks with due date <= this date (ISO 8601 format)
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: completed
+          in: query
+          description: Filter by completion status (existing functionality)
+          required: false
+          schema:
+            type: boolean
+        - name: sort_by
+          in: query
+          description: Field to sort by
+          required: false
+          schema:
+            type: string
+            enum: [title, priority, due_date, created_at, updated_at]
+            default: created_at
+        - name: sort_order
+          in: query
+          description: Sort order
+          required: false
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+        - name: limit
+          in: query
+          description: Number of tasks to return
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: offset
+          in: query
+          description: Number of tasks to skip
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: List of tasks with filtering applied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskListResponse'
+      security:
+        - bearerAuth: []
+
+    post:
+      summary: Create a new task with advanced features
+      description: Create a task with optional tags, recurrence, and reminder configuration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskCreate'
+      responses:
+        '200':
+          description: Task created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskRead'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        - bearerAuth: []
+
+  /tasks/{task_id}:
+    get:
+      summary: Get a specific task
+      description: Retrieve a single task by ID
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Task details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskRead'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      security:
+        - bearerAuth: []
+
+    put:
+      summary: Update a task completely
+      description: Update all fields of a task including advanced features
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskUpdate'
+      responses:
+        '200':
+          description: Task updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskRead'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      security:
+        - bearerAuth: []
+
+    patch:
+      summary: Partially update a task
+      description: Update specific fields of a task including advanced features
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskPatch'
+      responses:
+        '200':
+          description: Task updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskRead'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      security:
+        - bearerAuth: []
+
+    delete:
+      summary: Delete a task
+      description: Remove a task by ID
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Task deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      security:
+        - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    TaskRead:
+      type: object
+      required:
+        - id
+        - title
+        - description
+        - is_completed
+        - due_date
+        - priority
+        - user_id
+        - created_at
+        - updated_at
+        - tags
+        - recurrence_rule
+        - reminder_config
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the task
+        title:
+          type: string
+          description: Task title (1-255 characters)
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          description: Optional task description
+          maxLength: 1000
+        is_completed:
+          type: boolean
+          description: Whether the task is completed
+        due_date:
+          type: string
+          format: date-time
+          description: Optional due date for the task
+          nullable: true
+        priority:
+          type: string
+          enum: [low, medium, high]
+          description: Task priority level
+        tags:
+          type: array
+          description: List of tag names associated with the task
+          items:
+            type: string
+            minLength: 1
+            maxLength: 50
+        recurrence_rule:
+          type: object
+          description: Recurrence configuration for the task
+          nullable: true
+          properties:
+            frequency:
+              type: string
+              enum: [daily, weekly, monthly]
+              description: How often the task recurs
+            interval:
+              type: integer
+              description: Interval multiplier for the frequency
+              minimum: 1
+            end_condition:
+              type: object
+              description: When the recurrence should end
+              properties:
+                type:
+                  type: string
+                  enum: [on_date, after_occurrences]
+                  description: Type of end condition
+                value:
+                  type: string
+                  format: date-time
+                  description: Date or occurrence count for end condition
+        reminder_config:
+          type: object
+          description: Reminder configuration for the task
+          nullable: true
+          properties:
+            offset_minutes:
+              type: integer
+              description: Minutes before due date to trigger reminder
+              minimum: 1
+            notification_method:
+              type: string
+              enum: [email, push]
+              description: Method of notification
+        user_id:
+          type: string
+          format: uuid
+          description: ID of the user who owns the task
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the task was created
+        updated_at:
+          type: string
+          format: date-time
+          description: Timestamp when the task was last updated
+
+    TaskCreate:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          description: Task title (1-255 characters)
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          description: Optional task description
+          maxLength: 1000
+        is_completed:
+          type: boolean
+          description: Whether the task is completed (default: false)
+          default: false
+        due_date:
+          type: string
+          format: date-time
+          description: Optional due date for the task
+          nullable: true
+        priority:
+          type: string
+          enum: [low, medium, high]
+          description: Task priority level (default: medium)
+          default: medium
+        tags:
+          type: array
+          description: List of tag names to associate with the task
+          items:
+            type: string
+            minLength: 1
+            maxLength: 50
+          maxItems: 10
+        recurrence_rule:
+          type: object
+          description: Recurrence configuration for the task
+          nullable: true
+          properties:
+            frequency:
+              type: string
+              enum: [daily, weekly, monthly]
+              description: How often the task recurs
+            interval:
+              type: integer
+              description: Interval multiplier for the frequency
+              minimum: 1
+            end_condition:
+              type: object
+              description: When the recurrence should end
+              properties:
+                type:
+                  type: string
+                  enum: [on_date, after_occurrences]
+                  description: Type of end condition
+                value:
+                  type: string
+                  format: date-time
+                  description: Date or occurrence count for end condition
+        reminder_config:
+          type: object
+          description: Reminder configuration for the task
+          nullable: true
+          properties:
+            offset_minutes:
+              type: integer
+              description: Minutes before due date to trigger reminder
+              minimum: 1
+            notification_method:
+              type: string
+              enum: [email, push]
+              description: Method of notification
+          maxItems: 10
+
+    TaskUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Task title (1-255 characters)
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          description: Optional task description
+          maxLength: 1000
+        is_completed:
+          type: boolean
+          description: Whether the task is completed
+        due_date:
+          type: string
+          format: date-time
+          description: Optional due date for the task
+          nullable: true
+        priority:
+          type: string
+          enum: [low, medium, high]
+          description: Task priority level
+        tags:
+          type: array
+          description: List of tag names to associate with the task
+          items:
+            type: string
+            minLength: 1
+            maxLength: 50
+          maxItems: 10
+        recurrence_rule:
+          type: object
+          description: Recurrence configuration for the task
+          nullable: true
+          properties:
+            frequency:
+              type: string
+              enum: [daily, weekly, monthly]
+              description: How often the task recurs
+            interval:
+              type: integer
+              description: Interval multiplier for the frequency
+              minimum: 1
+            end_condition:
+              type: object
+              description: When the recurrence should end
+              properties:
+                type:
+                  type: string
+                  enum: [on_date, after_occurrences]
+                  description: Type of end condition
+                value:
+                  type: string
+                  format: date-time
+                  description: Date or occurrence count for end condition
+        reminder_config:
+          type: object
+          description: Reminder configuration for the task
+          nullable: true
+          properties:
+            offset_minutes:
+              type: integer
+              description: Minutes before due date to trigger reminder
+              minimum: 1
+            notification_method:
+              type: string
+              enum: [email, push]
+              description: Method of notification
+
+    TaskPatch:
+      allOf:
+        - $ref: '#/components/schemas/TaskUpdate'
+
+    TaskListResponse:
+      type: object
+      required:
+        - tasks
+        - total
+        - limit
+        - offset
+      properties:
+        tasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/TaskRead'
+        total:
+          type: integer
+          description: Total number of tasks matching the criteria
+        limit:
+          type: integer
+          description: Number of tasks requested
+        offset:
+          type: integer
+          description: Number of tasks skipped
+
+    DeleteResponse:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          description: Confirmation message
+
+  responses:
+    BadRequest:
+      description: Invalid request parameters or payload
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+                description: Error details
+
+    Unauthorized:
+      description: Authentication required or invalid
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+                description: Error details
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+                description: Error details

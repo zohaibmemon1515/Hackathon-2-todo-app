@@ -23,17 +23,47 @@ async def get_tasks(
     request: Request,
     current_user: User = Depends(get_current_active_user),
     completed: Optional[bool] = Query(None, description="Filter by completion status"),
+    query: Optional[str] = Query(None, description="Search query for title and description"),
+    tags: Optional[list[str]] = Query([], description="Filter by tag names"),
+    due_date_from: Optional[str] = Query(None, description="Filter tasks with due date >= this date (ISO format)"),
+    due_date_to: Optional[str] = Query(None, description="Filter tasks with due date <= this date (ISO format)"),
+    sort_by: Optional[str] = Query("created_at", description="Field to sort by", regex="^(title|priority|due_date|created_at|updated_at)$"),
+    sort_order: Optional[str] = Query("desc", description="Sort order", regex="^(asc|desc)$"),
     limit: int = Query(50, ge=1, le=100, description="Number of tasks to return"),
     offset: int = Query(0, ge=0, description="Number of tasks to skip"),
     db: Session = Depends(get_session)
 ):
     """
-    Get all tasks for the current user with optional completion filter
+    Get all tasks for the current user with optional filters, search, and sorting
     """
+    from datetime import datetime
+
+    # Parse date strings to datetime objects if provided
+    parsed_due_date_from = None
+    parsed_due_date_to = None
+
+    if due_date_from:
+        try:
+            parsed_due_date_from = datetime.fromisoformat(due_date_from.replace('Z', '+00:00'))
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid due_date_from format. Use ISO format.")
+
+    if due_date_to:
+        try:
+            parsed_due_date_to = datetime.fromisoformat(due_date_to.replace('Z', '+00:00'))
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid due_date_to format. Use ISO format.")
+
     tasks, total = task_service.get_user_tasks(
         db=db,
         user_id=current_user.id,
         completed=completed,
+        query_text=query,
+        tags=tags,
+        due_date_from=parsed_due_date_from,
+        due_date_to=parsed_due_date_to,
+        sort_by=sort_by,
+        sort_order=sort_order,
         limit=limit,
         offset=offset
     )

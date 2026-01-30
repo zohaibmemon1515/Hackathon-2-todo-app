@@ -30,8 +30,7 @@ export default function TaskEditForm({ task, onTaskUpdated, onClose }: Props) {
     description: task.description || "",
     priority: (task.priority as "low" | "medium" | "high") || "medium",
     due_date: task.due_date ? new Date(task.due_date).toISOString().split('T')[0] : "",
-    // Reminder agar backend se 'reminder_config' mein hai toh usse format karein
-    reminder: task.reminder_config ? new Date(task.due_date || "").toISOString().slice(0, 16) : "",
+    reminder_at: task.reminder_at ? new Date(task.reminder_at).toISOString().slice(0, 16) : "",
     tags: task.tags || [],
   });
 
@@ -71,7 +70,7 @@ export default function TaskEditForm({ task, onTaskUpdated, onClose }: Props) {
     
     setInternalLoading(true);
     try {
-        // Purane task data aur naye formData ko merge karke update function call karein
+        // Merge old task data with new formData
         await onTaskUpdated({ ...task, ...formData });
         onClose();
     } catch (error) {
@@ -127,7 +126,7 @@ export default function TaskEditForm({ task, onTaskUpdated, onClose }: Props) {
             required
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
-            value={formData.title} // ✅ Pre-filled value
+            value={formData.title}
             onChange={handleChange}
             placeholder="What needs to be done?"
             className="w-full text-3xl sm:text-4xl font-black bg-transparent border-none focus:outline-none text-slate-900 dark:text-white tracking-tight"
@@ -137,7 +136,7 @@ export default function TaskEditForm({ task, onTaskUpdated, onClose }: Props) {
             <AlignLeft className="w-5 h-5 mt-1 text-slate-300 group-focus-within:text-indigo-500 transition-colors" />
             <textarea
               name="description"
-              value={formData.description} // ✅ Pre-filled value
+              value={formData.description}
               onChange={handleChange}
               placeholder="Add some details..."
               className="w-full bg-transparent border-none focus:outline-none text-slate-600 dark:text-slate-400 text-lg resize-none min-h-[60px]"
@@ -179,7 +178,7 @@ export default function TaskEditForm({ task, onTaskUpdated, onClose }: Props) {
               type="date"
               name="due_date"
               min={today}
-              value={formData.due_date} // ✅ Pre-filled
+              value={formData.due_date}
               onChange={handleChange}
               className="w-full bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-slate-200 rounded-2xl p-3.5 text-sm outline-none border-2 border-transparent focus:border-indigo-500/20 transition-all cursor-pointer"
             />
@@ -192,9 +191,9 @@ export default function TaskEditForm({ task, onTaskUpdated, onClose }: Props) {
             </label>
             <input
               type="datetime-local"
-              name="reminder"
+              name="reminder_at"
               min={nowForReminder}
-              value={formData.reminder} // ✅ Pre-filled
+              value={formData.reminder_at}
               onChange={handleChange}
               className="w-full bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-slate-200 rounded-2xl p-3.5 text-sm outline-none border-2 border-transparent focus:border-indigo-500/20 transition-all cursor-pointer"
             />

@@ -1,17 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
-import {
-  Pencil,
-  Trash2,
-  Check,
-  Clock,
-  Tag,
-  Repeat,
-  Bell,
-  Sparkles,
-} from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Pencil, Trash2, Check, Clock, Tag, Sparkles } from "lucide-react";
 import { Task } from "@/types/task";
 import TaskEditForm from "./task-edit-form";
 import {
@@ -48,11 +39,13 @@ export default function TaskCard({
     low: {
       card: "border-l-emerald-500 bg-gradient-to-br from-emerald-50/20 to-emerald-50/10",
       glow: "group-hover:shadow-[0_12px_25px_-5px_rgba(34,197,94,0.4)]",
-      gradient: "bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500",
+      gradient:
+        "bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500",
     },
   };
 
-  const style = themes[task.priority?.toLowerCase() as keyof typeof themes] || themes.low;
+  const style =
+    themes[task.priority?.toLowerCase() as keyof typeof themes] || themes.low;
   const priorityInitial = task.priority?.charAt(0).toUpperCase() || "L";
 
   return (
@@ -76,7 +69,9 @@ export default function TaskCard({
         )}
 
         {/* Card Content */}
-        <div className={`p-5 flex flex-col gap-4 ${task.is_completed ? "opacity-80" : ""}`}>
+        <div
+          className={`p-5 flex flex-col gap-4 ${task.is_completed ? "opacity-80" : ""}`}
+        >
           {/* TOP: Priority & Actions */}
           <div className="flex items-center justify-between">
             <div
@@ -86,7 +81,11 @@ export default function TaskCard({
               <motion.div
                 className={`text-transparent bg-clip-text font-extrabold ${style.gradient}`}
                 animate={{ backgroundPositionX: [0, 100] }}
-                transition={{ duration: 2, repeat: Infinity, repeatType: "mirror" }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  repeatType: "mirror",
+                }}
               >
                 {priorityInitial}
               </motion.div>
@@ -109,60 +108,103 @@ export default function TaskCard({
             </div>
           </div>
 
-          {/* TITLE & DESCRIPTION */}
-          <div className="flex items-start gap-4">
-            <button
-              onClick={() =>
-                onTaskUpdated({ ...task, is_completed: !task.is_completed })
-              }
-              className={`mt-1 w-6 h-6 shrink-0 rounded-md border-2 flex items-center justify-center transition-all ${
-                task.is_completed
-                  ? "bg-indigo-600 border-indigo-600 text-white shadow-inner"
-                  : "border-slate-200 hover:border-indigo-400"
-              }`}
-            >
-              {task.is_completed && <Check size={14} strokeWidth={4} />}
-            </button>
+          {/* MAIN CONTENT WRAPPER */}
+          <div className="flex flex-col w-full gap-4">
+            {/* UPPER PART: Title + Description & Status Toggle */}
+            <div className="flex items-start gap-4">
+              {/* 1. Title & Description (Ziada Area) */}
+              <div className="min-w-0 flex-1 space-y-1">
+                <h3
+                  className={`text-base md:text-lg font-bold leading-tight transition-all duration-300 ${
+                    task.is_completed
+                      ? "text-slate-400 line-through"
+                      : "text-slate-900"
+                  }`}
+                >
+                  {task.title}
+                </h3>
 
-            <div className="min-w-0 flex-1">
-              <h3
-                className={`text-base font-bold leading-tight ${
-                  task.is_completed ? "text-slate-400 line-through" : "text-slate-900"
-                }`}
-              >
-                {task.title}
-              </h3>
-              {task.description && (
-                <p className="mt-1 text-sm text-slate-500 line-clamp-1 group-hover:line-clamp-none transition-all duration-300">
-                  {task.description}
-                </p>
-              )}
+                {task.description && (
+                  <p className="text-sm text-slate-500 line-clamp-1 group-hover:line-clamp-none transition-all duration-500 ease-in-out">
+                    {task.description}
+                  </p>
+                )}
+              </div>
 
-              {/* TAGS */}
-              {task.tags && task.tags.length > 0 && (
-                <div className="mt-2 flex flex-wrap gap-1">
-                  {task.tags.slice(0, 3).map((tag, i) => (
+              {/* 2. Toggle Switch (Kam Area - Fixed Width) */}
+              <div className="shrink-0 pt-1">
+                <button
+  onClick={() => onTaskUpdated({ ...task, is_completed: !task.is_completed })}
+  className="relative mt-0.5 shrink-0 group/toggle block"
+>
+  {/* Track: Width reduced to w-10 (40px) or w-9 (36px) */}
+  <div
+    className={`
+      w-10 h-5.5 rounded-full transition-all duration-500 flex items-center px-0.5
+      ${
+        task.is_completed
+          ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.3)]"
+          : "bg-slate-200 shadow-inner group-hover/toggle:bg-slate-300"
+      }
+    `}
+  >
+    {/* Animated Thumb: Size slightly smaller to fit w-10 */}
+    <motion.div
+      layout
+      transition={{
+        type: "spring",
+        stiffness: 300,
+        damping: 20,
+      }}
+      animate={{
+        x: task.is_completed ? 18 : 0, // Distance adjusted for smaller width
+        rotate: task.is_completed ? 360 : 0,
+      }}
+      className="w-4 h-4 bg-white rounded-full shadow-sm flex items-center justify-center"
+    >
+      <AnimatePresence mode="wait">
+        {task.is_completed ? (
+          <motion.div
+            key="check"
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            exit={{ scale: 0 }}
+          >
+            <Check
+              size={9}
+              strokeWidth={5}
+              className="text-emerald-600"
+            />
+          </motion.div>
+        ) : (
+          <div className="w-1 h-1 rounded-full bg-slate-300" />
+        )}
+      </AnimatePresence>
+    </motion.div>
+  </div>
+
+  <span className="sr-only">Toggle Complete</span>
+</button>
+              </div>
+            </div>
+
+            {/* LOWER PART: Full Width Tags */}
+            {task.tags && task.tags.length > 0 && (
+              <div className="w-full pt-3 border-t border-slate-50">
+                <div className="flex gap-2">
+                  {task.tags.map((tag, i) => (
                     <motion.span
                       key={i}
-                      whileHover={{
-                        scale: 1.1,
-                        backgroundColor: "#C7D2FE",
-                        color: "#1E3A8A",
-                        boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
-                      }}
-                      className="inline-flex items-center gap-1 bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full cursor-pointer shadow-sm transition-all duration-200"
-                      title={`Tag: ${tag}`}
+                      whileHover={{ scale: 1.05, backgroundColor: "#EEF2FF" }}
+                      className="inline-flex items-center gap-1.5 bg-slate-50 text-slate-600 border border-slate-100 text-[11px] font-semibold px-3 py-1 rounded-lg cursor-pointer transition-colors"
                     >
-                      <Tag size={10} />
+                      <Tag size={10} className="text-indigo-500" />
                       {tag}
                     </motion.span>
                   ))}
-                  {task.tags.length > 3 && (
-                    <span className="text-xs text-slate-400 ml-1">+{task.tags.length - 3} more</span>
-                  )}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
           {/* FOOTER */}
@@ -175,19 +217,6 @@ export default function TaskCard({
                     day: "2-digit",
                     month: "short",
                   })}
-                </div>
-              )}
-              {task.recurrence_rule && (
-                <div className="flex items-center gap-1">
-                  <Repeat size={12} />
-                  {task.recurrence_rule.frequency.charAt(0).toUpperCase() +
-                    task.recurrence_rule.frequency.slice(1)}
-                </div>
-              )}
-              {task.reminder_config && (
-                <div className="flex items-center gap-1">
-                  <Bell size={12} />
-                  {task.reminder_config.offset_minutes}m
                 </div>
               )}
             </div>

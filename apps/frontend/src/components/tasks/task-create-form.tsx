@@ -29,7 +29,7 @@ export default function TaskCreateForm({ onTaskCreated, onClose }: Props) {
     description: "",
     priority: "medium" as "low" | "medium" | "high",
     due_date: "",
-    reminder: "",
+    reminder_at: "",
     tags: [] as string[],
   });
 
@@ -181,9 +181,9 @@ export default function TaskCreateForm({ onTaskCreated, onClose }: Props) {
             </label>
             <input
               type="datetime-local"
-              name="reminder"
+              name="reminder_at"
               min={nowForReminder}
-              value={formData.reminder}
+              value={formData.reminder_at}
               onChange={handleChange}
               className="w-full bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-slate-200 rounded-2xl p-3.5 text-sm outline-none border-2 border-transparent focus:border-indigo-500/20 transition-all cursor-pointer"
             />

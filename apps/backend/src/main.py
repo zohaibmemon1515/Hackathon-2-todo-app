@@ -7,7 +7,11 @@ from .api import auth, tasks, chat  # <-- 1. Chat import add kiya
 from .database.database import engine
 from .models import user, task
 from sqlmodel import SQLModel
+from .services.kafka_service import kafka_service
 import asyncio
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Create the rate limiter
 limiter = Limiter(key_func=get_remote_address)
@@ -17,10 +21,25 @@ limiter = Limiter(key_func=get_remote_address)
 async def lifespan(app: FastAPI):
     def create_db_and_tables():
         SQLModel.metadata.create_all(bind=engine)
-    
+
     loop = asyncio.get_event_loop()
     await loop.run_in_executor(None, create_db_and_tables)
+
+    # Initialize Kafka service
+    try:
+        await kafka_service.initialize()
+        logger.info("Kafka service initialized")
+    except Exception as e:
+        logger.error(f"Failed to initialize Kafka service: {e}")
+
     yield
+
+    # Close Kafka service
+    try:
+        await kafka_service.close()
+        logger.info("Kafka service closed")
+    except Exception as e:
+        logger.error(f"Error closing Kafka service: {e}")
 
 # Create the FastAPI app
 app = FastAPI(

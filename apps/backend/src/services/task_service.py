@@ -6,6 +6,7 @@ from datetime import datetime
 from ..models.task import Task as TaskModel, Tag, TaskTagLink as TaskTag, TaskCreate, TaskUpdate, TaskPatch
 from ..schemas.task import TaskRead
 from ..utils.logging import get_security_logger
+from ..services.kafka_service import kafka_service
 import uuid
 import logging
 
@@ -15,7 +16,7 @@ security_logger = get_security_logger()
 
 # ------------------ TASK OPERATIONS ------------------
 
-def get_user_tasks(
+async def get_user_tasks(
     db: Session,
     user_id: uuid.UUID,
     completed: Optional[bool] = None,
@@ -90,7 +91,7 @@ def get_user_tasks(
         raise
 
 
-def get_task_by_id(db: Session, task_id: int, user_id: uuid.UUID) -> Optional[TaskRead]:
+async def get_task_by_id(db: Session, task_id: int, user_id: uuid.UUID) -> Optional[TaskRead]:
     try:
         task = db.query(TaskModel).filter(and_(TaskModel.id == task_id, TaskModel.user_id == user_id)).first()
         if task:
@@ -107,7 +108,7 @@ def get_task_by_id(db: Session, task_id: int, user_id: uuid.UUID) -> Optional[Ta
         raise
 
 
-def create_task(db: Session, user_id: uuid.UUID, task_data: TaskCreate) -> TaskRead:
+async def create_task(db: Session, user_id: uuid.UUID, task_data: TaskCreate) -> TaskRead:
     try:
         tags = task_data.tags if hasattr(task_data, 'tags') else []
 
@@ -146,6 +147,21 @@ def create_task(db: Session, user_id: uuid.UUID, task_data: TaskCreate) -> TaskR
             {"task_id": db_task.id, "title": task_data.title, "tags_count": len(tags)}
         )
 
+        # Publish events after successful database commit
+        try:
+            # Publish task.created event
+            await kafka_service.publish_task_event('task.created', task_dict)
+
+            # Publish UI sync event
+            await kafka_service.publish_ui_sync_event('created', task_dict)
+
+            # Publish reminder event if reminder_at is set
+            if task_dict.get('reminder_at'):
+                await kafka_service.publish_reminder_event(task_dict)
+        except Exception as e:
+            logger.error(f"Error publishing events after task creation: {str(e)}")
+            # Don't raise - event publishing shouldn't break the main operation
+
         return result
 
     except SQLAlchemyError as e:
@@ -158,7 +174,7 @@ def create_task(db: Session, user_id: uuid.UUID, task_data: TaskCreate) -> TaskR
         raise
 
 
-def update_task(db: Session, task_id: int, user_id: uuid.UUID, task_data: TaskUpdate) -> Optional[TaskRead]:
+async def update_task(db: Session, task_id: int, user_id: uuid.UUID, task_data: TaskUpdate) -> Optional[TaskRead]:
     try:
         task = db.query(TaskModel).filter(and_(TaskModel.id == task_id, TaskModel.user_id == user_id)).first()
         if not task:
@@ -201,6 +217,21 @@ def update_task(db: Session, task_id: int, user_id: uuid.UUID, task_data: TaskUp
             {"task_id": task_id, "updated_fields": list(update_data.keys()), "tags_updated": tags is not None}
         )
 
+        # Publish events after successful database commit
+        try:
+            # Publish task.updated event
+            await kafka_service.publish_task_event('task.updated', task_dict)
+
+            # Publish UI sync event
+            await kafka_service.publish_ui_sync_event('updated', task_dict)
+
+            # Publish reminder event if reminder_at is set and changed
+            if task_dict.get('reminder_at'):
+                await kafka_service.publish_reminder_event(task_dict)
+        except Exception as e:
+            logger.error(f"Error publishing events after task update: {str(e)}")
+            # Don't raise - event publishing shouldn't break the main operation
+
         return result
 
     except SQLAlchemyError as e:
@@ -213,7 +244,7 @@ def update_task(db: Session, task_id: int, user_id: uuid.UUID, task_data: TaskUp
         raise
 
 
-def patch_task(db: Session, task_id: int, user_id: uuid.UUID, task_data: TaskPatch) -> Optional[TaskRead]:
+async def patch_task(db: Session, task_id: int, user_id: uuid.UUID, task_data: TaskPatch) -> Optional[TaskRead]:
     try:
         task = db.query(TaskModel).filter(and_(TaskModel.id == task_id, TaskModel.user_id == user_id)).first()
         if not task:
@@ -221,8 +252,13 @@ def patch_task(db: Session, task_id: int, user_id: uuid.UUID, task_data: TaskPat
 
         tags = task_data.tags if hasattr(task_data, 'tags') else None
         update_data = task_data.model_dump(exclude={'tags'}, exclude_unset=True)
+
+        # Track if completion status changed
+        was_completed = task.is_completed
         for field, value in update_data.items():
             setattr(task, field, value)
+
+        is_now_completed = task.is_completed
 
         if tags is not None:
             db.query(TaskTag).filter(TaskTag.task_id == task_id).delete()
@@ -253,6 +289,25 @@ def patch_task(db: Session, task_id: int, user_id: uuid.UUID, task_data: TaskPat
             {"task_id": task_id, "updated_fields": list(update_data.keys()), "tags_updated": tags is not None}
         )
 
+        # Publish events after successful database commit
+        try:
+            # Determine the appropriate event type
+            event_type = 'task.completed' if is_now_completed and not was_completed else 'task.updated'
+
+            # Publish the appropriate task event
+            await kafka_service.publish_task_event(event_type, task_dict)
+
+            # Publish UI sync event
+            sync_action = 'completed' if is_now_completed and not was_completed else 'updated'
+            await kafka_service.publish_ui_sync_event(sync_action, task_dict)
+
+            # Publish reminder event if reminder_at is set and changed
+            if task_dict.get('reminder_at'):
+                await kafka_service.publish_reminder_event(task_dict)
+        except Exception as e:
+            logger.error(f"Error publishing events after task patch: {str(e)}")
+            # Don't raise - event publishing shouldn't break the main operation
+
         return result
 
     except SQLAlchemyError as e:
@@ -265,11 +320,16 @@ def patch_task(db: Session, task_id: int, user_id: uuid.UUID, task_data: TaskPat
         raise
 
 
-def delete_task(db: Session, task_id: int, user_id: uuid.UUID) -> bool:
+async def delete_task(db: Session, task_id: int, user_id: uuid.UUID) -> bool:
     try:
         task = db.query(TaskModel).filter(and_(TaskModel.id == task_id, TaskModel.user_id == user_id)).first()
         if not task:
             return False
+
+        # Store task data before deletion for event publishing
+        task_dict = task.to_dict()
+        task_tags = db.query(Tag).join(TaskTag).filter(TaskTag.task_id == task.id).all()
+        task_dict['tags'] = [tag.name for tag in task_tags]
 
         db.delete(task)
         db.commit()
@@ -279,6 +339,17 @@ def delete_task(db: Session, task_id: int, user_id: uuid.UUID) -> bool:
             str(user_id),
             {"task_id": task_id}
         )
+
+        # Publish events after successful database commit
+        try:
+            # Publish task.deleted event
+            await kafka_service.publish_task_event('task.deleted', task_dict)
+
+            # Publish UI sync event
+            await kafka_service.publish_ui_sync_event('deleted', task_dict)
+        except Exception as e:
+            logger.error(f"Error publishing events after task deletion: {str(e)}")
+            # Don't raise - event publishing shouldn't break the main operation
 
         return True
 

@@ -37,29 +37,14 @@ Features to Specify (Incremental Only):
 - Search applies to title and description
 - Must reuse existing list/query logic
 
-3. Advanced Filters
-- Extend existing filters to include:
-  - tag-based filtering
-  - due date range filtering
-- Existing completion-status filter must remain untouched
 
-4. Sorting
-- Extend existing sorting logic to support:
-  - due date
-  - priority (existing field)
-  - title (alphabetical)
-
-5. Due Dates
+4. Due Dates
 - Add optional due date/time support
 - If due_date already exists, only validate and expose it consistently
 
-6. Recurring Tasks (Metadata Only)
-- Extend Task model with recurrence metadata:
-  - daily / weekly / monthly
-- No automation, no scheduling
 
-7. Reminders (Configuration Only)
-- Extend Task model with reminder configuration
+7. Reminders 
+- Extend Task model with reminder 
 - No reminder execution logic
 
 Constraints:

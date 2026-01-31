@@ -1,0 +1,119 @@
+# API Contracts: Kafka Event Integration
+
+## Task Events Contract
+
+### Task Created Event
+**Topic**: `task-events`
+**Event Type**: `task.created`
+
+```json
+{
+  "event_type": "task.created",
+  "task_id": "uuid-string",
+  "user_id": "uuid-string",
+  "title": "Task title",
+  "priority": "high|medium|low",
+  "due_date": "2024-12-31T23:59:59Z",
+  "reminder_at": "2024-12-31T23:59:59Z",
+  "tags": ["tag1", "tag2"],
+  "is_completed": false,
+  "timestamp": "2024-12-31T23:59:59Z"
+}
+```
+
+### Task Updated Event
+**Topic**: `task-events`
+**Event Type**: `task.updated`
+
+```json
+{
+  "event_type": "task.updated",
+  "task_id": "uuid-string",
+  "user_id": "uuid-string",
+  "title": "Updated task title",
+  "priority": "high|medium|low",
+  "due_date": "2024-12-31T23:59:59Z",
+  "reminder_at": "2024-12-31T23:59:59Z",
+  "tags": ["tag1", "tag2"],
+  "is_completed": false,
+  "timestamp": "2024-12-31T23:59:59Z"
+}
+```
+
+### Task Completed Event
+**Topic**: `task-events`
+**Event Type**: `task.completed`
+
+```json
+{
+  "event_type": "task.completed",
+  "task_id": "uuid-string",
+  "user_id": "uuid-string",
+  "title": "Completed task title",
+  "priority": "high|medium|low",
+  "due_date": "2024-12-31T23:59:59Z",
+  "reminder_at": "2024-12-31T23:59:59Z",
+  "tags": ["tag1", "tag2"],
+  "is_completed": true,
+  "timestamp": "2024-12-31T23:59:59Z"
+}
+```
+
+### Task Deleted Event
+**Topic**: `task-events`
+**Event Type**: `task.deleted`
+
+```json
+{
+  "event_type": "task.deleted",
+  "task_id": "uuid-string",
+  "user_id": "uuid-string",
+  "title": "Deleted task title",
+  "priority": "high|medium|low",
+  "due_date": "2024-12-31T23:59:59Z",
+  "reminder_at": "2024-12-31T23:59:59Z",
+  "tags": ["tag1", "tag2"],
+  "is_completed": false,
+  "timestamp": "2024-12-31T23:59:59Z"
+}
+```
+
+## Reminder Events Contract
+
+### Reminder Set Event
+**Topic**: `reminders`
+**Event Type**: `reminder.set`
+
+```json
+{
+  "event_type": "reminder.set",
+  "task_id": "uuid-string",
+  "user_id": "uuid-string",
+  "reminder_at": "2024-12-31T23:59:59Z",
+  "due_date": "2024-12-31T23:59:59Z",
+  "title": "Task with reminder"
+}
+```
+
+## UI Sync Events Contract
+
+### Task Sync Event
+**Topic**: `task-updates`
+**Event Types**: `task.created`, `task.updated`, `task.completed`, `task.deleted`
+
+```json
+{
+  "event_type": "task.created|task.updated|task.completed|task.deleted",
+  "task_id": "uuid-string",
+  "user_id": "uuid-string",
+  "action": "created|updated|completed|deleted",
+  "timestamp": "2024-12-31T23:59:59Z",
+  "payload": {
+    // Minimal task data for UI updates
+    "id": "uuid-string",
+    "title": "Task title",
+    "is_completed": false,
+    "due_date": "2024-12-31T23:59:59Z"
+  }
+}
+```

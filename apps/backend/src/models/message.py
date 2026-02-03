@@ -10,13 +10,18 @@ class MessageBase(SQLModel):
     role: str  # "user", "assistant"
     content: str
 
-    # Stored as TEXT in DB, always JSON string
+    # 1. Jo error aa raha hai usay handle karne ke liye ye add karein
+    command_metadata: Optional[str] = Field(
+        default="{}", 
+        sa_column=Column(Text, nullable=False) # Error isi nullable=False ki wajah se tha
+    )
+
+    # 2. Aapka purana extra_info
     extra_info: Optional[str] = Field(
         default="{}",
         sa_column=Column(Text, nullable=False),
         alias="metadata"
     )
-
 
 class Message(MessageBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)

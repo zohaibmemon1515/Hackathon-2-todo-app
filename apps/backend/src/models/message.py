@@ -10,6 +10,12 @@ class MessageBase(SQLModel):
     role: str  # "user", "assistant"
     content: str
 
+    # Enhanced fields for language support
+    original_content: Optional[str] = Field(default=None)  # Original input before processing (e.g., Urdu)
+    processed_content: Optional[str] = Field(default=None)  # Processed content (e.g., translated to English)
+    language_detected: Optional[str] = Field(default=None)  # Detected language like "en", "ur"
+    command_metadata: Optional[str] = Field(default="{}", sa_column=Column(Text, nullable=False))  # Command-specific metadata as JSON string
+
     # Stored as TEXT in DB, always JSON string
     extra_info: Optional[str] = Field(
         default="{}",

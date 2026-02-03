@@ -1,0 +1,161 @@
+# API Contracts: AI Agent Enhancement
+
+## Overview
+API contracts for enhanced chatbot functionality while maintaining compatibility with existing APIs.
+
+## Enhanced Chat API Endpoints
+
+### POST /api/chat/send
+Send a message to the AI chatbot and receive a response. Supports new commands and Urdu input.
+
+**Request Body:**
+```json
+{
+  "message": "Natural language command like 'Check pending tasks' or 'Remind me tomorrow at 9am'",
+  "conversation_id": "optional conversation ID, creates new if not provided",
+  "user_preferences": {
+    "preferred_language": "en or ur",
+    "context_extensions": {}
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "conversation_id": "UUID of the conversation",
+  "response": "Processed response from AI",
+  "actions_taken": [
+    {
+      "action": "tasks_retrieved",
+      "details": {
+        "task_count": 5,
+        "tasks": [
+          {
+            "id": "UUID",
+            "title": "Task title",
+            "due_date": "ISO datetime string",
+            "priority": "high|medium|low",
+            "status": "pending|completed"
+          }
+        ]
+      }
+    },
+    {
+      "action": "reminder_scheduled",
+      "details": {
+        "schedule_id": "UUID of scheduled reminder",
+        "scheduled_time": "ISO datetime string",
+        "message": "Reminder message"
+      }
+    }
+  ],
+  "next_steps": ["follow_up_question", "confirmation_needed"],
+  "language_processed": "en"  // Shows the language the command was processed as
+}
+```
+
+**Status Codes:**
+- 200: Success
+- 400: Invalid request format
+- 401: Unauthorized
+- 500: Internal server error
+
+### GET /api/chat/conversations
+Retrieve list of user's conversations (unchanged from existing API).
+
+**Query Parameters:**
+- limit: integer (default 20, max 100)
+- offset: integer (default 0)
+- sort: string (created_at, updated_at, title - default: updated_at)
+
+**Response:**
+```json
+{
+  "conversations": [
+    {
+      "id": "UUID",
+      "title": "Conversation title",
+      "created_at": "ISO datetime",
+      "updated_at": "ISO datetime",
+      "last_message_preview": "Preview of last message",
+      "unread_count": 0
+    }
+  ],
+  "total_count": 15,
+  "has_more": true
+}
+```
+
+### GET /api/chat/conversations/{conversation_id}/messages
+Retrieve messages for a specific conversation (enhanced with language metadata).
+
+**Response:**
+```json
+{
+  "messages": [
+    {
+      "id": "UUID",
+      "role": "user|assistant|system",
+      "content": "Message content",
+      "original_content": "Original input (e.g., in Urdu)",
+      "language_detected": "en|ur",
+      "timestamp": "ISO datetime",
+      "metadata": {
+        "language": "en|ur",
+        "intent": "parsed_intent",
+        "entities": ["extracted_entities"],
+        "command_type": "check_tasks|set_reminder|etc"
+      }
+    }
+  ]
+}
+```
+
+### POST /api/chat/conversations/{conversation_id}/rename
+Rename a conversation (unchanged from existing API).
+
+**Request Body:**
+```json
+{
+  "title": "New conversation title (max 100 chars)"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "conversation_id": "UUID",
+  "new_title": "Updated title"
+}
+```
+
+## Backward Compatibility
+All existing API endpoints remain unchanged:
+- Tasks API: /api/tasks/*
+- Authentication API: /api/auth/*
+- User API: /api/users/*
+- All existing chat endpoints maintain the same functionality
+
+## Error Handling
+Standard error format maintained across all endpoints:
+```json
+{
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "Human-readable error message",
+    "details": {}
+  }
+}
+```
+
+## Rate Limiting
+Existing rate limiting patterns maintained:
+- Authenticated users: 100 requests per minute
+- Unauthenticated: 10 requests per minute
+
+## Language Support
+- New commands support both English and Roman Urdu input
+- Language detection happens automatically or can be specified by user
+- Responses provided in the user's preferred language when possible

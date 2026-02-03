@@ -12,12 +12,23 @@ class MessageService:
 
     def create_message(self, db_session: Session, message_data: MessageBase) -> Message:
         """Create a new message."""
+        # Extract all attributes safely
+        original_content = getattr(message_data, 'original_content', None)
+        processed_content = getattr(message_data, 'processed_content', None)
+        language_detected = getattr(message_data, 'language_detected', None)
+        command_metadata = getattr(message_data, 'command_metadata', '{}')
+        extra_info = getattr(message_data, 'extra_info', '{}')
+
         message = Message(
             user_id=message_data.user_id,
             conversation_id=message_data.conversation_id,
             role=message_data.role,
             content=message_data.content,
-            metadata=message_data.metadata
+            original_content=original_content,
+            processed_content=processed_content,
+            language_detected=language_detected,
+            command_metadata=command_metadata,
+            extra_info=extra_info
         )
         db_session.add(message)
         db_session.commit()
@@ -44,7 +55,8 @@ class MessageService:
         message = self.get_message(db_session, message_id)
         if message:
             for key, value in message_data.dict().items():
-                setattr(message, key, value)
+                if hasattr(message, key):
+                    setattr(message, key, value)
             db_session.add(message)
             db_session.commit()
             db_session.refresh(message)

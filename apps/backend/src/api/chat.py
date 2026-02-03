@@ -8,9 +8,10 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from sqlmodel import Session
 from typing import Dict, Any, Optional, Union
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 import html
 import re
+import json
 
 # Services & Database Imports
 from ..services.chat_service import ChatService
@@ -28,7 +29,8 @@ router = APIRouter(prefix="", tags=["chat"])
 class ChatRequest(BaseModel):
     message: str
     # FIX: Frontend se ID string ya number dono aa sakti hain, aur null bhi
-    conversation_id: Optional[Union[str, int]] = None 
+    conversation_id: Optional[Union[str, int]] = None
+    user_preferences: Optional[Dict[str, Any]] = Field(default_factory=dict)  # Added for language preferences and context extensions
 
 class ChatResponse(BaseModel):
     response: str
@@ -41,7 +43,7 @@ class ChatResponse(BaseModel):
 @limiter.limit("10/minute")
 async def chat_endpoint(
     request: Request,               # 2. SlowAPI ke liye Request object add kiya
-    user_id: str, 
+    user_id: str,
     chat_data: ChatRequest,         # 3. Purane 'request' ka naam badal kar 'chat_data' rakha
     db_session: Session = Depends(get_session)
 ):
@@ -54,7 +56,8 @@ async def chat_endpoint(
         result = await chat_service.process_message(
             user_id=user_id,
             message=sanitized_message,
-            conversation_id=chat_data.conversation_id
+            conversation_id=chat_data.conversation_id,
+            user_preferences=chat_data.user_preferences or {}
         )
 
         return ChatResponse(

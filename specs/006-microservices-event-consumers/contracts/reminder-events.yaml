@@ -1,0 +1,104 @@
+openapi: 3.0.0
+info:
+  title: Reminder Events Contract
+  version: 1.0.0
+  description: Contract defining the reminder events published to the Kafka reminders topic
+paths: {}
+components:
+  schemas:
+    ReminderSetEvent:
+      type: object
+      required:
+        - event_type
+        - task_id
+        - user_id
+        - reminder_time
+        - timestamp
+        - payload
+      properties:
+        event_type:
+          type: string
+          enum: [reminder.set]
+        task_id:
+          type: string
+          format: uuid
+          description: UUID of the task with the reminder
+        user_id:
+          type: string
+          format: uuid
+          description: UUID of the user who owns the task
+        reminder_time:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp when the reminder should trigger
+        timestamp:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp when the event was created
+        payload:
+          type: object
+          properties:
+            task_title:
+              type: string
+              description: Title of the task being reminded
+            task_description:
+              type: string
+              description: Optional description of the task being reminded
+            reminder_created_at:
+              type: string
+              format: date-time
+              description: Timestamp when the reminder was set
+            reminder_metadata:
+              type: object
+              description: Additional metadata about the reminder
+          required:
+            - task_title
+            - reminder_created_at
+    ReminderTriggeredEvent:
+      type: object
+      required:
+        - event_type
+        - task_id
+        - user_id
+        - trigger_time
+        - timestamp
+        - payload
+      properties:
+        event_type:
+          type: string
+          enum: [reminder.triggered]
+        task_id:
+          type: string
+          format: uuid
+          description: UUID of the task with the triggered reminder
+        user_id:
+          type: string
+          format: uuid
+          description: UUID of the user who owns the task
+        trigger_time:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp when the reminder was triggered
+        timestamp:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp when the event was created
+        payload:
+          type: object
+          properties:
+            task_title:
+              type: string
+              description: Title of the task being reminded
+            notification_attempted:
+              type: boolean
+              description: Whether notification was attempted
+            notification_result:
+              type: string
+              description: Result of the notification attempt
+          required:
+            - task_title
+            - notification_attempted
+    GenericReminderEvent:
+      oneOf:
+        - $ref: '#/components/schemas/ReminderSetEvent'
+        - $ref: '#/components/schemas/ReminderTriggeredEvent'

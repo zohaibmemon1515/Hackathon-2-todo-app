@@ -1,0 +1,180 @@
+openapi: 3.0.0
+info:
+  title: Task Events Contract
+  version: 1.0.0
+  description: Contract defining the task events published to the Kafka task-events topic
+paths: {}
+components:
+  schemas:
+    TaskCreatedEvent:
+      type: object
+      required:
+        - event_type
+        - task_id
+        - user_id
+        - timestamp
+        - payload
+      properties:
+        event_type:
+          type: string
+          enum: [task.created]
+        task_id:
+          type: string
+          format: uuid
+          description: UUID of the created task
+        user_id:
+          type: string
+          format: uuid
+          description: UUID of the user who created the task
+        timestamp:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp when the event occurred
+        payload:
+          type: object
+          properties:
+            title:
+              type: string
+              description: Title of the created task
+            description:
+              type: string
+              description: Optional description of the task
+            completed:
+              type: boolean
+              description: Whether the task is initially completed
+            created_at:
+              type: string
+              format: date-time
+              description: Timestamp when the task was created
+          required:
+            - title
+            - completed
+            - created_at
+    TaskUpdatedEvent:
+      type: object
+      required:
+        - event_type
+        - task_id
+        - user_id
+        - timestamp
+        - payload
+      properties:
+        event_type:
+          type: string
+          enum: [task.updated]
+        task_id:
+          type: string
+          format: uuid
+          description: UUID of the updated task
+        user_id:
+          type: string
+          format: uuid
+          description: UUID of the user who updated the task
+        timestamp:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp when the event occurred
+        payload:
+          type: object
+          properties:
+            title:
+              type: string
+              description: Updated title of the task
+            description:
+              type: string
+              description: Updated description of the task
+            completed:
+              type: boolean
+              description: Updated completion status
+            updated_at:
+              type: string
+              format: date-time
+              description: Timestamp when the task was updated
+          required:
+            - title
+            - completed
+            - updated_at
+    TaskCompletedEvent:
+      type: object
+      required:
+        - event_type
+        - task_id
+        - user_id
+        - timestamp
+        - payload
+      properties:
+        event_type:
+          type: string
+          enum: [task.completed]
+        task_id:
+          type: string
+          format: uuid
+          description: UUID of the completed task
+        user_id:
+          type: string
+          format: uuid
+          description: UUID of the user who completed the task
+        timestamp:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp when the event occurred
+        payload:
+          type: object
+          properties:
+            completed_at:
+              type: string
+              format: date-time
+              description: Timestamp when the task was completed
+            title:
+              type: string
+              description: Title of the completed task
+            completed:
+              type: boolean
+              description: Completion status (true)
+          required:
+            - completed_at
+            - title
+            - completed
+    TaskDeletedEvent:
+      type: object
+      required:
+        - event_type
+        - task_id
+        - user_id
+        - timestamp
+        - payload
+      properties:
+        event_type:
+          type: string
+          enum: [task.deleted]
+        task_id:
+          type: string
+          format: uuid
+          description: UUID of the deleted task
+        user_id:
+          type: string
+          format: uuid
+          description: UUID of the user who deleted the task
+        timestamp:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp when the event occurred
+        payload:
+          type: object
+          properties:
+            deleted_at:
+              type: string
+              format: date-time
+              description: Timestamp when the task was deleted
+            title:
+              type: string
+              description: Title of the deleted task
+          required:
+            - deleted_at
+            - title
+    GenericTaskEvent:
+      oneOf:
+        - $ref: '#/components/schemas/TaskCreatedEvent'
+        - $ref: '#/components/schemas/TaskUpdatedEvent'
+        - $ref: '#/components/schemas/TaskCompletedEvent'
+        - $ref: '#/components/schemas/TaskDeletedEvent'

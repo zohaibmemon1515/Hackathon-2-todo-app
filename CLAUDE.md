@@ -214,6 +214,9 @@ See `.specify/memory/constitution.md` for code quality, testing, performance, se
 - In-memory only (no file/database persistence as required by constitution) (002-phase1-todo-app)
 - TypeScript 5.0+ (frontend), Python 3.11+ (backend) + Next.js 16+ with App Router, FastAPI 0.104+, SQLModel, Neon PostgreSQL, Better Auth (001-fullstack-todo-app)
 - Neon Serverless PostgreSQL database with SQLModel ORM (001-fullstack-todo-app)
+- Python 3.11+ with aiokafka for async event consumption, Docker containerization (006-microservices-event-consumers)
 
 ## Recent Changes
 - 002-phase1-todo-app: Added Python 3.13+ (as required by constitution) + Python standard library only (no external dependencies as required by constitution)
+- 005-kafka-events: Added Kafka integration for event-driven architecture
+- 006-microservices-event-consumers: Added event-driven microservices architecture with notification and audit services

@@ -8,7 +8,9 @@ from .database.database import engine
 from .models import user, task
 from sqlmodel import SQLModel
 import asyncio
+from dotenv import load_dotenv
 
+load_dotenv()  # Load environment variables from .env file
 # Create the rate limiter
 limiter = Limiter(key_func=get_remote_address)
 

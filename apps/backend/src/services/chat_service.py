@@ -8,12 +8,7 @@ from ..models.conversation import Conversation
 from ..models.message import Message
 from ..services.conversation_service import ConversationService
 from ..services.message_service import MessageService
-
-# ✅ IMPORTANT: class AgentService hatao
-# ❌ from ..services.agent_service import AgentService
-# ✅ direct function import karo
 from ..services.agent_service import process_request
-
 
 class ChatService:
     def __init__(self, db_session: Session):
@@ -25,7 +20,9 @@ class ChatService:
         self,
         user_id: str,
         message: str,
-        conversation_id: Optional[Union[str, int]] = None,
+        # UUID ke liye Union[str, Any] rakha hai
+        conversation_id: Optional[Union[str, Any]] = None,
+        user_preferences: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
 
         # -------------------------------------------------
@@ -33,40 +30,51 @@ class ChatService:
         # -------------------------------------------------
         conversation = None
 
+        # FIX: UUID string hoti hai, isliye int() hata diya gaya hai
         if conversation_id and str(conversation_id).lower() != "null":
             try:
                 conversation = self.conversation_service.get_conversation(
-                    self.db_session, int(conversation_id)
+                    self.db_session, conversation_id
                 )
-            except Exception:
+            except Exception as e:
+                print(f"Conversation fetch error: {e}")
                 conversation = None
 
         if not conversation:
+            # Create new conversation if not found
+            conversation_data = Conversation(
+                user_id=user_id,
+                title=message[:50],
+                metadata=json.dumps(user_preferences) if user_preferences else "{}"
+            )
             conversation = self.conversation_service.create_conversation(
                 self.db_session,
-                Conversation(user_id=user_id, title=message[:50]),
+                conversation_data,
             )
 
         # -------------------------------------------------
-        # 2. SAVE USER MESSAGE (Direct SQL insert)
+        # 2. SAVE USER MESSAGE
         # -------------------------------------------------
-        user_stmt = (
-            insert(Message)
-            .values(
-                user_id=user_id,
-                conversation_id=conversation.id,
-                role="user",
-                content=message,
-                extra_info="{}",  # MUST be string
-                timestamp=datetime.utcnow(),
-            )
-            .returning(Message.id)
+        from ..utils.language_detection import detect_and_process_language
+        lang_analysis = detect_and_process_language(message)
+
+        user_message_data = Message(
+            user_id=user_id,
+            conversation_id=conversation.id,
+            role="user",
+            content=message,
+            original_content=message if lang_analysis['is_translated'] else None,
+            processed_content=lang_analysis['processed_text'] if lang_analysis['is_translated'] else None,
+            language_detected=lang_analysis['language'],
+            command_metadata="{}",
+            extra_info="{}"
         )
 
-        user_msg_id = self.db_session.execute(user_stmt).scalar()
+        user_message = self.message_service.create_message(self.db_session, user_message_data)
+        user_msg_id = user_message.id
 
         # -------------------------------------------------
-        # 3. AI AGENT (DIRECT FUNCTION CALL)
+        # 3. AI AGENT CALL
         # -------------------------------------------------
         agent_response = await process_request(
             user_id=user_id,
@@ -79,24 +87,25 @@ class ChatService:
         )
 
         # -------------------------------------------------
-        # 4. SAVE AGENT MESSAGE (Direct SQL insert)
+        # 4. SAVE AGENT MESSAGE
         # -------------------------------------------------
         agent_metadata = agent_response.get("metadata", {})
 
-        agent_stmt = (
-            insert(Message)
-            .values(
-                user_id="system",
-                conversation_id=conversation.id,
-                role="assistant",
-                content=response_text,
-                extra_info=json.dumps(agent_metadata) if agent_metadata else "{}",
-                timestamp=datetime.utcnow(),
-            )
-            .returning(Message.id)
+        agent_message_data = Message(
+            user_id="system",
+            conversation_id=conversation.id,
+            role="assistant",
+            content=response_text,
+            original_content=None,
+            processed_content=None,
+            language_detected=None,
+            command_metadata="{}",
+            # json.dumps ab hamesha work karega kyunki import top par hai
+            extra_info=json.dumps(agent_metadata) if agent_metadata else "{}"
         )
 
-        agent_msg_id = self.db_session.execute(agent_stmt).scalar()
+        agent_message = self.message_service.create_message(self.db_session, agent_message_data)
+        agent_msg_id = agent_message.id
 
         # -------------------------------------------------
         # 5. Update conversation timestamp
@@ -115,7 +124,8 @@ class ChatService:
     # -------------------------------------------------
     # READ METHODS
     # -------------------------------------------------
-    def get_conversation_history(self, conversation_id: int) -> list:
+    def get_conversation_history(self, conversation_id: Any) -> list:
+        # UUID ke liye int() conversion hata di gayi hai
         messages = self.message_service.get_messages_by_conversation(
             self.db_session, conversation_id
         )

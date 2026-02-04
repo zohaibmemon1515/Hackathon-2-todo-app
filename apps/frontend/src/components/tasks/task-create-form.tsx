@@ -1,109 +1,242 @@
-import { useState } from 'react';
-import { TaskCreate } from '@/types/task';
-import { api } from '@/lib/api';
-import { Plus, Calendar, Flag, AlignLeft, Sparkles } from 'lucide-react';
+"use client";
 
-export default function TaskCreateForm({ onTaskCreated }: { onTaskCreated: (task: any) => void }) {
-  const [formData, setFormData] = useState<TaskCreate>({ title: '', description: '', priority: 'medium', due_date: undefined });
-  const [loading, setLoading] = useState(false);
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useTaskState } from "@/lib/task-state";
+import {
+  Save, Calendar, Flag, AlignLeft, Sparkles,
+  Tag, X, Loader2, Command, Clock
+} from "lucide-react";
 
-  const handleChange = (e: any) => {
+interface Props {
+  // Create form mein 'task' prop nahi hota, isliye ise hata diya ya optional rakha
+  onTaskCreated: (data: any) => Promise<void>;
+  onClose?: () => void;
+}
+
+export default function TaskCreateForm({ onTaskCreated, onClose }: Props) {
+  const { loading: stateLoading } = useTaskState();
+  const [isFocused, setIsFocused] = useState(false);
+  const [internalLoading, setInternalLoading] = useState(false);
+  const [newTag, setNewTag] = useState("");
+  
+  const today = new Date().toISOString().split('T')[0];
+  const nowForReminder = new Date().toISOString().slice(0, 16);
+
+  // ✅ FIX: Initialization bina 'task' ke karein
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    priority: "medium" as "low" | "medium" | "high",
+    due_date: "",
+    reminder_at: "",
+    tags: [] as string[],
+  });
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && formData.title) {
+        handleSubmit(e as any);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [formData.title]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: name === 'due_date' && value ? new Date(value).toISOString() : value }));
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleAddTag = () => {
+    const tag = newTag.trim().toLowerCase();
+    if (!tag || formData.tags.includes(tag)) return;
+    setFormData(prev => ({ ...prev, tags: [...prev.tags, tag] }));
+    setNewTag("");
+  };
+
+  const handleRemoveTag = (tagToRemove: string) => {
+    setFormData(prev => ({
+      ...prev,
+      tags: prev.tags.filter(t => t !== tagToRemove)
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    if (!formData.title || stateLoading || internalLoading) return;
+    
+    setInternalLoading(true);
     try {
-      const newTask = await api.tasks.create(formData);
-      onTaskCreated(newTask);
-      setFormData({ title: '', description: '', priority: 'medium', due_date: undefined });
-    } catch (err) {
-      console.error(err);
+        await onTaskCreated(formData);
+        // Form reset after success if needed, or onClose handle it
+    } catch (error) {
+        console.error("Creation failed", error);
     } finally {
-      setLoading(false);
+        setInternalLoading(false);
     }
   };
 
+  const priorityColors = {
+    low: "bg-emerald-500",
+    medium: "bg-amber-500",
+    high: "bg-rose-500"
+  };
+
   return (
-    <div className="w-full max-w-3xl mx-auto">
-      <form onSubmit={handleSubmit} className="bg-slate-50/50 p-1 rounded-4xl border border-slate-200 shadow-inner">
-        <div className="bg-white p-6 sm:p-8 rounded-[1.8rem] shadow-xl space-y-6">
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className={`w-full bg-white dark:bg-slate-950 border transition-all duration-500 sm:rounded-3xl shadow-2xl relative overflow-hidden ${
+        isFocused ? "border-indigo-500 ring-4 ring-indigo-500/10" : "border-slate-200 dark:border-slate-800"
+      }`}
+    >
+      <div className="absolute top-0 left-0 w-full h-1 bg-slate-100 dark:bg-slate-800">
+        <motion.div 
+          className="h-full bg-indigo-600"
+          initial={{ width: "0%" }}
+          animate={{ width: formData.title ? "100%" : "0%" }}
+        />
+      </div>
+
+      <div className="px-6 py-5 flex items-center justify-between border-b border-slate-100 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-900/30 backdrop-blur-md">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-indigo-600 rounded-xl shadow-lg">
+            <Sparkles className="w-4 h-4 text-white" />
+          </div>
+          <div>
+            <h2 className="text-sm font-bold text-slate-900 dark:text-white leading-none">New Task</h2>
+            <p className="text-[10px] text-slate-500 uppercase tracking-tighter mt-1 font-medium">Workspace / Create Mode</p>
+          </div>
+        </div>
+      </div>
+
+      <form onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-3">
+        <div className="space-y-4">
+          <input
+            name="title"
+            required
+            autoFocus
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+            value={formData.title}
+            onChange={handleChange}
+            placeholder="What needs to be done?"
+            className="w-full text-3xl sm:text-4xl font-black bg-transparent border-none focus:outline-none placeholder:text-slate-200 dark:placeholder:text-slate-800 text-slate-900 dark:text-white tracking-tight"
+          />
           
-          {/* Header */}
-          <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-            <h2 className="text-xl font-black text-slate-800 flex items-center gap-2 tracking-tight">
-              <Sparkles className="w-5 h-5 text-indigo-500 fill-indigo-100" /> New Task
-            </h2>
-            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 bg-slate-50 px-2 py-1 rounded">Quick Add</span>
+          <div className="flex gap-3 items-start group">
+            <AlignLeft className="w-5 h-5 mt-1 text-slate-300 group-focus-within:text-indigo-500 transition-colors" />
+            <textarea
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              placeholder="Add details..."
+              className="w-full bg-transparent border-none focus:outline-none text-slate-600 dark:text-slate-400 text-lg resize-none min-h-[60px]"
+            />
           </div>
+        </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {/* Title - Full Width */}
-            <div className="md:col-span-2">
-              <div className="group relative">
-                <input 
-                  name="title" 
-                  required 
-                  value={formData.title} 
-                  onChange={handleChange}
-                  className="w-full text-lg font-medium px-0 py-2 border-b-2 border-slate-100 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-300" 
-                  placeholder="What's on your mind?" 
-                />
-              </div>
-            </div>
-
-            {/* Description */}
-            <div className="md:col-span-2 flex gap-3 items-start">
-              <AlignLeft className="w-5 h-5 text-slate-400 mt-2 shrink-0" />
-              <textarea 
-                name="description" 
-                rows={1} 
-                value={formData.description || ''} 
-                onChange={handleChange}
-                className="w-full px-0 py-2 border-b border-slate-100 focus:border-indigo-400 outline-none transition-all resize-none text-slate-600 placeholder:text-slate-300" 
-                placeholder="Add notes..." 
-              />
-            </div>
-
-            {/* Priority Select */}
-            <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-100 focus-within:ring-2 ring-indigo-100 transition-all">
-              <Flag className={`w-4 h-4 ${formData.priority === 'high' ? 'text-red-500' : 'text-slate-400'}`} />
-              <select 
-                name="priority" 
-                value={formData.priority} 
-                onChange={handleChange}
-                className="bg-transparent w-full outline-none text-sm font-semibold text-slate-700 cursor-pointer"
-              >
-                <option value="low">Low Priority</option>
-                <option value="medium">Medium Priority</option>
-                <option value="high">High Priority</option>
-              </select>
-            </div>
-
-            {/* Date Input */}
-            <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-100 focus-within:ring-2 ring-indigo-100 transition-all">
-              <Calendar className="w-4 h-4 text-slate-400" />
-              <input 
-                type="date" 
-                name="due_date" 
-                value={formData.due_date ? new Date(formData.due_date).toISOString().split('T')[0] : ''} 
-                onChange={handleChange}
-                className="bg-transparent w-full outline-none text-sm font-semibold text-slate-700 cursor-pointer" 
-              />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-3">
+            <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+              <Flag className="w-3 h-3" /> Priority Level
+            </label>
+            <div className="grid grid-cols-3 gap-2 p-1 bg-slate-100 dark:bg-slate-900 rounded-2xl">
+              {(['low', 'medium', 'high'] as const).map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, priority: p }))}
+                  className={`py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+                    formData.priority === p 
+                      ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm scale-[1.02]" 
+                      : "text-slate-500 opacity-60 hover:opacity-100"
+                  }`}
+                >
+                  <div className={`w-1.5 h-1.5 rounded-full ${priorityColors[p]}`} />
+                  {p.toUpperCase()}
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* Submit Button */}
-          <button 
-            disabled={loading} 
-            className="w-full bg-slate-900 hover:bg-indigo-600 text-white font-bold py-4 rounded-2xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-slate-200 active:scale-95 disabled:opacity-50"
+          <div className="space-y-3">
+            <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+              <Calendar className="w-3 h-3" /> Due Date
+            </label>
+            <input
+              type="date"
+              name="due_date"
+              min={today}
+              value={formData.due_date}
+              onChange={handleChange}
+              className="w-full bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-slate-200 rounded-2xl p-3.5 text-sm outline-none border-2 border-transparent focus:border-indigo-500/20 transition-all cursor-pointer"
+            />
+          </div>
+
+          <div className="space-y-3">
+            <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+              <Clock className="w-3 h-3" /> Set Reminder
+            </label>
+            <input
+              type="datetime-local"
+              name="reminder_at"
+              min={nowForReminder}
+              value={formData.reminder_at}
+              onChange={handleChange}
+              className="w-full bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-slate-200 rounded-2xl p-3.5 text-sm outline-none border-2 border-transparent focus:border-indigo-500/20 transition-all cursor-pointer"
+            />
+          </div>
+
+          <div className="space-y-3">
+            <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+              <Tag className="w-3 h-3" /> Tags
+            </label>
+            <div className="flex flex-wrap items-center gap-2 bg-slate-100 dark:bg-slate-900 rounded-2xl p-2 min-h-[52px]">
+              <AnimatePresence mode="popLayout">
+                {formData.tags.map(tag => (
+                  <motion.span
+                    layout key={tag}
+                    className="flex items-center gap-1.5 bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 px-3 py-1.5 rounded-xl text-[11px] font-bold border border-indigo-100 dark:border-indigo-800/50 shadow-sm"
+                  >
+                    #{tag}
+                    <X className="w-3 h-3 cursor-pointer hover:text-rose-500" onClick={() => handleRemoveTag(tag)} />
+                  </motion.span>
+                ))}
+              </AnimatePresence>
+              <input
+                value={newTag}
+                onChange={e => setNewTag(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') { e.preventDefault(); handleAddTag(); }
+                }}
+                placeholder="Add tag..."
+                className="flex-1 bg-transparent border-none outline-none py-1.5 px-2 text-sm text-slate-700 dark:text-slate-200 min-w-[80px]"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="pt-8 flex items-center gap-3 border-t border-slate-50 dark:border-slate-900">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 px-6 py-4 rounded-2xl font-bold text-[11px] uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-all"
           >
-            {loading ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <><Plus size={20} /> Create Task</>}
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={stateLoading || internalLoading || !formData.title}
+            className="flex-[2] relative group bg-indigo-600 hover:bg-indigo-700 text-white px-10 py-4 rounded-2xl font-black text-sm transition-all shadow-xl active:scale-95 flex items-center justify-center gap-3"
+          >
+            {internalLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
+              <>Create Task <Save className="w-5 h-5" /></>
+            )}
           </button>
         </div>
       </form>
-    </div>
+    </motion.div>
   );
 }

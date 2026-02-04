@@ -10,18 +10,19 @@ class MessageBase(SQLModel):
     role: str  # "user", "assistant"
     content: str
 
-    # 1. Jo error aa raha hai usay handle karne ke liye ye add karein
-    command_metadata: Optional[str] = Field(
-        default="{}", 
-        sa_column=Column(Text, nullable=False) # Error isi nullable=False ki wajah se tha
-    )
+    # Enhanced fields for language support
+    original_content: Optional[str] = Field(default=None)  # Original input before processing (e.g., Urdu)
+    processed_content: Optional[str] = Field(default=None)  # Processed content (e.g., translated to English)
+    language_detected: Optional[str] = Field(default=None)  # Detected language like "en", "ur"
+    command_metadata: Optional[str] = Field(default="{}", sa_column=Column(Text, nullable=False))  # Command-specific metadata as JSON string
 
-    # 2. Aapka purana extra_info
+    # Stored as TEXT in DB, always JSON string
     extra_info: Optional[str] = Field(
         default="{}",
         sa_column=Column(Text, nullable=False),
         alias="metadata"
     )
+
 
 class Message(MessageBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)

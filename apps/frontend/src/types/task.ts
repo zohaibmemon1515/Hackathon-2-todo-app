@@ -9,6 +9,8 @@ export interface Task {
   updated_at: string; // ISO date string
   due_date?: string; // ISO date string
   priority: 'low' | 'medium' | 'high';
+  tags?: string[]; // Array of tag names
+  reminder_at?: string; // ISO date string
   user_id: string;
 }
 
@@ -17,6 +19,8 @@ export interface TaskCreate {
   description?: string;
   due_date?: string; // ISO date string
   priority?: 'low' | 'medium' | 'high';
+  tags?: string[]; // Array of tag names
+  reminder_at?: string; // ISO date string
 }
 
 export interface TaskUpdate {
@@ -25,6 +29,8 @@ export interface TaskUpdate {
   is_completed?: boolean;
   due_date?: string; // ISO date string
   priority?: 'low' | 'medium' | 'high';
+  tags?: string[]; // Array of tag names
+  reminder_at?: string; // ISO date string
 }
 
 export interface TaskListResponse {
